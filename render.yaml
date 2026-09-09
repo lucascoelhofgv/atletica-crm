@@ -1,0 +1,22 @@
+# Blueprint do Render (https://render.com). Ao conectar o repositório o Render
+# lê este arquivo e provisiona o serviço. O plano free tem "cold start".
+services:
+  - type: web
+    name: crm-atletica
+    runtime: python
+    plan: free
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn config.wsgi:application"
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://crm-atletica.onrender.com"
+      - key: DATABASE_URL
+        sync: false        # cole a connection string do Supabase no painel
+      - key: PYTHON_VERSION
+        value: "3.12.6"

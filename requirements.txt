@@ -1,0 +1,13 @@
+# CRM Atlética FGV Rio — dependências de produção
+Django>=5.1,<5.3
+django-environ>=0.11
+psycopg[binary]>=3.1
+whitenoise>=6.6
+django-simple-history>=3.5
+Pillow>=10.2
+django-widget-tweaks>=1.5
+gunicorn>=22.0
+
+# Integração Google Sheets (fase 2)
+gspread>=6.1
+google-auth>=2.29

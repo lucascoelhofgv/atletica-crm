@@ -1,0 +1,10 @@
+Olá,
+
+Você (ou alguém) pediu para redefinir a senha de acesso ao {{ site_name }}.
+
+Para criar uma nova senha, acesse:
+{{ protocol }}://{{ domain }}{% url 'contas:password_reset_confirm' uidb64=uid token=token %}
+
+Se você não fez esse pedido, ignore este e-mail.
+
+Equipe {{ site_name }}

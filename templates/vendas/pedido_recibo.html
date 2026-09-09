@@ -1,0 +1,52 @@
+{% load humanize %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <title>Recibo — Pedido {{ pedido.numero }}</title>
+  <style>
+    body{font-family:system-ui,Arial,sans-serif;max-width:720px;margin:2rem auto;color:#111;padding:0 1rem}
+    h1{font-size:1.2rem} table{width:100%;border-collapse:collapse;margin:1rem 0}
+    th,td{border-bottom:1px solid #ccc;padding:.4rem;text-align:left;font-size:.9rem}
+    tfoot th{border:0}
+    .top{display:flex;justify-content:space-between;align-items:center}
+    .btn{display:inline-block;padding:.4rem .9rem;background:#1B2A4A;color:#fff;border-radius:6px;text-decoration:none}
+    @media print{.no-print{display:none}}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div>
+      <h1>{{ cfg.nome_organizacao|default:"Atlética FGV Rio" }}</h1>
+      <div>Recibo / resumo do pedido</div>
+    </div>
+    <a href="#" class="btn no-print" onclick="window.print();return false">Imprimir / salvar PDF</a>
+  </div>
+  <hr>
+  <p><strong>Pedido:</strong> {{ pedido.numero|default:"(rascunho)" }}<br>
+     <strong>Cliente:</strong> {{ pedido.cliente }}<br>
+     <strong>Data:</strong> {{ pedido.data_compra|date:"d/m/Y" }}<br>
+     <strong>Status:</strong> {{ pedido.get_status_display }} — pagamento {{ pedido.get_status_pagamento_display }}</p>
+
+  <table>
+    <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Total</th></tr></thead>
+    <tbody>
+    {% for i in itens %}
+      <tr><td>{{ i.produto }}</td><td>{{ i.quantidade }}</td>
+        <td>R$ {{ i.preco_unitario|floatformat:2 }}</td>
+        <td>R$ {{ i.total|floatformat:2 }}</td></tr>
+    {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><th colspan="3">Subtotal</th><th>R$ {{ pedido.subtotal|floatformat:2 }}</th></tr>
+      <tr><th colspan="3">Desconto</th><th>− R$ {{ pedido.desconto|floatformat:2 }}</th></tr>
+      <tr><th colspan="3">Taxa</th><th>R$ {{ pedido.taxa|floatformat:2 }}</th></tr>
+      <tr><th colspan="3">TOTAL</th><th>R$ {{ pedido.valor_total|floatformat:2 }}</th></tr>
+    </tfoot>
+  </table>
+
+  <p><strong>Forma de pagamento:</strong> {{ pedido.get_forma_pagamento_display|default:"—" }}<br>
+     <strong>Local de retirada:</strong> {{ pedido.local_retirada|default:"—" }}</p>
+  <p style="font-size:.8rem;color:#666">Documento gerado pelo CRM da Atlética para controle interno.</p>
+</body>
+</html>

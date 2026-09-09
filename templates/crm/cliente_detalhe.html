@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load humanize widget_tweaks %}
+{% block titulo %}{{ cliente }}{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div>
+    <h1>{{ cliente }}</h1>
+    <div class="sub">
+      {% if cliente.categoria %}{{ cliente.categoria.nome }} · {% endif %}
+      {{ cliente.get_relacionamento_display }}
+      {% if cliente.total_gasto %} · Total pago: R$ {{ cliente.total_gasto|floatformat:2 }}{% endif %}
+    </div>
+  </div>
+  <div>
+    <a href="{% url 'crm:cliente_editar' cliente.pk %}" class="btn btn-light">Editar</a>
+    {% if user.is_superuser or "Administrador" in user.perfis %}
+    <a href="{% url 'crm:cliente_excluir' cliente.pk %}" class="btn btn-outline-danger">Excluir</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="painel">
+      <h2>Dados</h2>
+      <table class="grade">
+        <tr><th>E-mail</th><td>{{ cliente.email|default:"—" }}</td></tr>
+        <tr><th>Telefone</th><td>{{ cliente.telefone|default:"—" }}</td></tr>
+        <tr><th>WhatsApp</th><td>{{ cliente.whatsapp|default:"—" }}</td></tr>
+        <tr><th>Curso</th><td>{{ cliente.curso|default:"—" }} {{ cliente.periodo }}</td></tr>
+        <tr><th>Campus</th><td>{{ cliente.campus|default:"—" }}</td></tr>
+        <tr><th>Cidade</th><td>{{ cliente.cidade|default:"—" }}</td></tr>
+        <tr><th>Origem</th><td>{{ cliente.origem|default:"—" }}</td></tr>
+        <tr><th>Comunicações</th><td>{% if cliente.aceita_comunicacoes %}Autorizadas{% else %}Não autorizadas{% endif %}</td></tr>
+      </table>
+      {% if cliente.observacoes %}<p class="mt-2 small"><strong>Obs.:</strong> {{ cliente.observacoes }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="painel">
+      <h2>Registrar interação</h2>
+      <form method="post" action="{% url 'crm:interacao_nova' cliente.pk %}">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_interacao %}
+        <button class="btn btn-sm btn-primary mt-2">Adicionar</button>
+      </form>
+    </div>
+
+    <div class="painel">
+      <h2>Histórico de interações</h2>
+      {% for i in interacoes %}
+        <div class="border-bottom py-2">
+          <div class="d-flex justify-content-between">
+            <strong>{{ i.get_tipo_display }} — {{ i.resumo }}</strong>
+            <span class="text-muted small">{{ i.data|date:"d/m/Y H:i" }}</span>
+          </div>
+          {% if i.detalhe %}<div class="small text-muted">{{ i.detalhe }}</div>{% endif %}
+          <div class="small text-muted">por {{ i.registrado_por|default:"—" }}</div>
+        </div>
+      {% empty %}<p class="text-muted small mb-0">Nenhuma interação registrada.</p>{% endfor %}
+    </div>
+
+    <div class="painel">
+      <h2>Pedidos</h2>
+      <div class="tabela-wrap">
+        <table class="grade">
+          <thead><tr><th>Número</th><th>Data</th><th>Status</th><th>Valor</th></tr></thead>
+          <tbody>
+          {% for p in pedidos %}
+            <tr onclick="location.href='{% url 'vendas:pedido_detalhe' p.pk %}'" style="cursor:pointer">
+              <td>{{ p.numero|default:"rascunho" }}</td><td>{{ p.data_compra|date:"d/m/Y" }}</td>
+              <td>{{ p.get_status_display }}</td><td>R$ {{ p.valor_total|floatformat:2 }}</td>
+            </tr>
+          {% empty %}<tr><td colspan="4" class="text-muted">Sem pedidos.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

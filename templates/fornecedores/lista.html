@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block titulo %}Fornecedores{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div><h1>Fornecedores e parceiros</h1><div class="sub">{{ paginator.count }} cadastrado(s)</div></div>
+  <a href="{% url 'fornecedores:novo' %}" class="btn btn-primary">+ Novo fornecedor</a>
+</div>
+
+<form class="filtros" method="get">
+  <input type="search" name="q" value="{{ filtros.q }}" class="form-control" placeholder="Nome, contato">
+  <select name="categoria" class="form-select">
+    <option value="">Todas as categorias</option>
+    {% for v, r in categorias %}<option value="{{ v }}" {% if filtros.categoria == v %}selected{% endif %}>{{ r }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-secondary">Filtrar</button>
+</form>
+
+<div class="painel">
+  <div class="tabela-wrap">
+    <table class="grade">
+      <thead><tr><th>Nome</th><th>Categoria</th><th>Contato</th><th>Telefone</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for f in fornecedores %}
+        <tr onclick="location.href='{% url 'fornecedores:detalhe' f.pk %}'" style="cursor:pointer">
+          <td>{{ f }}</td>
+          <td>{{ f.get_categoria_display }}</td>
+          <td>{{ f.contato_nome|default:"—" }}</td>
+          <td>{{ f.telefone|default:"—" }}</td>
+          <td>{% if f.status == 'ativo' %}<span class="badge-status st-verde">Ativo</span>{% else %}<span class="badge-status st-cinza">Inativo</span>{% endif %}</td>
+        </tr>
+      {% empty %}<tr><td colspan="5" class="text-muted">Nenhum fornecedor.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/_paginacao.html" %}
+</div>
+{% endblock %}

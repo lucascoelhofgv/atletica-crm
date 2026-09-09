@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block titulo %}Confirmar exclusão{% endblock %}
+{% block conteudo %}
+<div class="painel" style="max-width:520px">
+  <h2>Confirmar exclusão</h2>
+  <p>Tem certeza de que deseja excluir <strong>{{ object }}</strong>?</p>
+  <p class="sub">Esta ação não pode ser desfeita. O histórico de auditoria do registro é mantido.</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sim, excluir</button>
+    <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-light">Cancelar</a>
+  </form>
+</div>
+{% endblock %}

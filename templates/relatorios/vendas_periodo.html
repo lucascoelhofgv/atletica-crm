@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}Vendas por período{% endblock %}
+{% block conteudo %}
+<div class="page-head"><h1>Vendas por período</h1></div>
+<form class="filtros" method="get">
+  <div><label class="small">Início</label><input type="date" name="inicio" value="{{ inicio }}" class="form-control"></div>
+  <div><label class="small">Fim</label><input type="date" name="fim" value="{{ fim }}" class="form-control"></div>
+  <button class="btn btn-outline-secondary">Aplicar</button>
+  <a class="btn btn-light" href="?inicio={{ inicio }}&fim={{ fim }}&formato=csv">Exportar CSV</a>
+</form>
+<div class="cards-kpi">
+  <div class="kpi"><div class="rot">Pedidos</div><div class="val">{{ qtd }}</div></div>
+  <div class="kpi"><div class="rot">Receita</div><div class="val">R$ {{ total|floatformat:2|intcomma }}</div></div>
+</div>
+<div class="painel">
+  <div class="tabela-wrap">
+    <table class="grade">
+      <thead><tr><th>Dia</th><th>Pedidos</th><th>Receita</th></tr></thead>
+      <tbody>
+      {% for r in por_dia %}
+        <tr><td>{{ r.data_compra|date:"d/m/Y" }}</td><td>{{ r.qtd }}</td><td>R$ {{ r.total|floatformat:2 }}</td></tr>
+      {% empty %}<tr><td colspan="3" class="text-muted">Sem dados no período.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

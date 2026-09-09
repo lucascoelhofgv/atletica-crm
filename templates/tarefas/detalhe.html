@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}{{ tarefa.titulo }}{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div>
+    <h1>{{ tarefa.titulo }}</h1>
+    <div class="sub">{{ tarefa.get_status_display }} · {{ tarefa.get_prioridade_display }}
+      {% if tarefa.prazo %} · prazo {{ tarefa.prazo|date:"d/m/Y" }}{% if tarefa.atrasada %} <span class="text-danger">(atrasada)</span>{% endif %}{% endif %}</div>
+  </div>
+  <div>
+    <a href="{% url 'tarefas:editar' tarefa.pk %}" class="btn btn-light">Editar</a>
+    <a href="{% url 'tarefas:excluir' tarefa.pk %}" class="btn btn-outline-danger">Excluir</a>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-7">
+    <div class="painel">
+      <h2>Descrição</h2>
+      <p>{{ tarefa.descricao|linebreaksbr|default:"—" }}</p>
+      <table class="grade">
+        <tr><th>Responsável</th><td>{{ tarefa.responsavel|default:"—" }}</td></tr>
+        <tr><th>Criador</th><td>{{ tarefa.criador|default:"—" }}</td></tr>
+        {% if tarefa.cliente %}<tr><th>Cliente</th><td><a href="{% url 'crm:cliente_detalhe' tarefa.cliente.pk %}">{{ tarefa.cliente }}</a></td></tr>{% endif %}
+        {% if tarefa.pedido %}<tr><th>Pedido</th><td><a href="{% url 'vendas:pedido_detalhe' tarefa.pedido.pk %}">{{ tarefa.pedido.numero }}</a></td></tr>{% endif %}
+        {% if tarefa.fornecedor %}<tr><th>Fornecedor</th><td><a href="{% url 'fornecedores:detalhe' tarefa.fornecedor.pk %}">{{ tarefa.fornecedor }}</a></td></tr>{% endif %}
+      </table>
+      {% if tarefa.anexo %}<p><a href="{{ tarefa.anexo.url }}">Baixar anexo</a></p>{% endif %}
+    </div>
+
+    <div class="painel">
+      <h2>Comentários</h2>
+      {% for c in comentarios %}
+        <div class="border-bottom py-2 small"><strong>{{ c.autor|default:"—" }}</strong>
+          <span class="text-muted">{{ c.criado_em|naturaltime }}</span><br>{{ c.texto|linebreaksbr }}</div>
+      {% empty %}<p class="text-muted small">Nenhum comentário.</p>{% endfor %}
+      <form method="post" action="{% url 'tarefas:comentar' tarefa.pk %}" class="mt-2">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_comentario %}
+        <button class="btn btn-sm btn-primary mt-2">Comentar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="painel">
+      <h2>Mudar status</h2>
+      <form method="post" action="{% url 'tarefas:status' tarefa.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{% url 'tarefas:detalhe' tarefa.pk %}">
+        <div class="d-flex gap-2">
+          <select name="status" class="form-select">
+            {% for v, r in tarefa.Status.choices %}<option value="{{ v }}" {% if v == tarefa.status %}selected{% endif %}>{{ r }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary">Aplicar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

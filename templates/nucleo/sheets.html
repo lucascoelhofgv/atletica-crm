@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block titulo %}Google Sheets{% endblock %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Integração com Google Sheets</h1>
+  <div class="sub">Exporta Clientes, Produtos e Pedidos para uma planilha do Google.</div></div></div>
+
+<div class="painel" style="max-width:640px">
+  {% if configurado %}
+    <p>A integração está configurada. Ao sincronizar, as abas <strong>Clientes</strong>,
+    <strong>Produtos</strong> e <strong>Pedidos</strong> da planilha são recriadas com os dados atuais.</p>
+    <form method="post">
+      {% csrf_token %}
+      <button class="btn btn-primary">Sincronizar agora</button>
+    </form>
+  {% else %}
+    <div class="aviso">A integração ainda não foi configurada. Veja <code>docs/DEPLOY.md</code>
+    (seção Google Sheets): é preciso uma <em>service account</em> do Google Cloud e o ID da planilha
+    nas variáveis <code>GOOGLE_SERVICE_ACCOUNT_FILE</code> e <code>GOOGLE_SHEETS_SPREADSHEET_ID</code>.</div>
+  {% endif %}
+  <p class="sub mt-2">Também é possível agendar a sincronização automática com o comando
+  <code>python manage.py exportar_sheets</code> (Cron Job do Render ou GitHub Actions).</p>
+</div>
+{% endblock %}

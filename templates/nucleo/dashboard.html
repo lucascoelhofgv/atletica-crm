@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}Painel{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div><h1>Painel</h1><div class="sub">Visão geral · {{ periodo_label }}</div></div>
+  <form method="get">
+    <select name="periodo" class="form-select" onchange="this.form.submit()">
+      {% for chave, dados in periodos.items %}
+        <option value="{{ chave }}" {% if chave == periodo %}selected{% endif %}>{{ dados.0 }}</option>
+      {% endfor %}
+    </select>
+  </form>
+</div>
+
+<div class="cards-kpi">
+  <div class="kpi"><div class="rot">Vendas no período</div><div class="val">{{ total_vendas }}</div></div>
+  <div class="kpi"><div class="rot">Receita (confirmada)</div><div class="val">R$ {{ receita|floatformat:2|intcomma }}</div></div>
+  <div class="kpi"><div class="rot">Aguardando pagamento</div><div class="val">{{ pedidos_aguardando }}</div></div>
+  <div class="kpi"><div class="rot">Pagos</div><div class="val">{{ pedidos_pagos }}</div></div>
+  <div class="kpi"><div class="rot">Para separar / retirar</div><div class="val">{{ pedidos_retirada }}</div></div>
+  <div class="kpi {% if produtos_baixo %}alerta{% endif %}"><div class="rot">Estoque baixo</div><div class="val">{{ produtos_baixo }}</div></div>
+  <div class="kpi {% if produtos_esgotados %}alerta{% endif %}"><div class="rot">Esgotados</div><div class="val">{{ produtos_esgotados }}</div></div>
+  <div class="kpi"><div class="rot">Clientes</div><div class="val">{{ clientes_total }}</div></div>
+  <div class="kpi"><div class="rot">Novos clientes</div><div class="val">{{ clientes_novos }}</div></div>
+  <div class="kpi {% if tarefas_atrasadas %}alerta{% endif %}"><div class="rot">Tarefas atrasadas</div><div class="val">{{ tarefas_atrasadas }}</div></div>
+  <div class="kpi"><div class="rot">Fornecedores ativos</div><div class="val">{{ fornecedores_ativos }}</div></div>
+  <div class="kpi"><div class="rot">Valor em estoque (custo)</div><div class="val">R$ {{ valor_estoque|floatformat:2|intcomma }}</div></div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="painel">
+      <h2>Produtos mais vendidos</h2>
+      <div class="tabela-wrap">
+        <table class="grade">
+          <thead><tr><th>Produto</th><th>Qtd</th></tr></thead>
+          <tbody>
+          {% for p in top_produtos %}
+            <tr><td>{{ p.produto__nome }}</td><td>{{ p.qtd }}</td></tr>
+          {% empty %}<tr><td colspan="2" class="text-muted">Sem vendas no período.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="painel">
+      <h2>Minhas tarefas em aberto</h2>
+      {% for t in minhas_tarefas %}
+        <div class="d-flex justify-content-between border-bottom py-2">
+          <a href="{% url 'tarefas:detalhe' t.pk %}">{{ t.titulo }}</a>
+          <span class="small {% if t.atrasada %}text-danger{% else %}text-muted{% endif %}">{{ t.prazo|default:"sem prazo" }}</span>
+        </div>
+      {% empty %}<p class="text-muted small mb-0">Nada por aqui. 🎉</p>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="painel">
+  <h2>Atividades recentes</h2>
+  {% for a in atividades %}
+    <div class="d-flex justify-content-between border-bottom py-2 small">
+      <span><strong>{{ a.usuario|default:"Sistema" }}</strong> {{ a.verbo }} <em>{{ a.alvo }}</em></span>
+      <span class="text-muted">{{ a.criado_em|naturaltime }}</span>
+    </div>
+  {% empty %}<p class="text-muted small mb-0">Sem atividades registradas ainda.</p>{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}{{ produto }}{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div>
+    <h1>{{ produto }}</h1>
+    <div class="sub">Saldo atual: <strong>{{ produto.quantidade_atual }}</strong> un ·
+      valor em estoque (custo): R$ {{ produto.valor_em_estoque|floatformat:2 }}</div>
+  </div>
+  <div>
+    <a href="{% url 'catalogo:produto_editar' produto.pk %}" class="btn btn-light">Editar</a>
+    {% if user.is_superuser or "Administrador" in user.perfis %}
+    <a href="{% url 'catalogo:produto_excluir' produto.pk %}" class="btn btn-outline-danger">Excluir</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if produto.esgotado %}<div class="aviso">⚠️ Produto esgotado.</div>
+{% elif produto.estoque_baixo %}<div class="aviso">⚠️ Estoque abaixo do mínimo ({{ produto.estoque_minimo }}).</div>{% endif %}
+
+<div class="row">
+  <div class="col-lg-5">
+    <div class="painel">
+      <h2>Ficha</h2>
+      <table class="grade">
+        <tr><th>SKU / código</th><td>{{ produto.sku|default:"—" }} / {{ produto.codigo_interno|default:"—" }}</td></tr>
+        <tr><th>Categoria</th><td>{{ produto.categoria.nome|default:"—" }}</td></tr>
+        <tr><th>Fornecedor</th><td>{{ produto.fornecedor.nome|default:"—" }}</td></tr>
+        <tr><th>Custo / venda</th><td>R$ {{ produto.custo_unitario|floatformat:2 }} / R$ {{ produto.preco_venda|floatformat:2 }}</td></tr>
+        <tr><th>Margem</th><td>{% if produto.margem_estimada %}{{ produto.margem_estimada|floatformat:2 }}{% else %}—{% endif %}</td></tr>
+        <tr><th>Localização</th><td>{{ produto.localizacao|default:"—" }}</td></tr>
+      </table>
+    </div>
+
+    <div class="painel">
+      <h2>Movimentar estoque</h2>
+      <form method="post" action="{% url 'catalogo:movimentacao_nova' produto.pk %}">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_mov %}
+        <button class="btn btn-sm btn-primary mt-2">Registrar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-7">
+    <div class="painel">
+      <h2>Histórico de movimentações</h2>
+      <div class="tabela-wrap">
+        <table class="grade">
+          <thead><tr><th>Data</th><th>Tipo</th><th>Qtd</th><th>Saldo</th><th>Responsável</th><th>Motivo</th></tr></thead>
+          <tbody>
+          {% for m in movimentacoes %}
+            <tr>
+              <td>{{ m.data|date:"d/m/Y H:i" }}</td>
+              <td>{{ m.get_tipo_display }}</td>
+              <td>{% if m.eh_entrada %}+{% else %}−{% endif %}{{ m.quantidade }}</td>
+              <td>{{ m.saldo_apos }}</td>
+              <td>{{ m.usuario|default:"—" }}</td>
+              <td class="small text-muted">{{ m.motivo }}{% if m.pedido %} · <a href="{% url 'vendas:pedido_detalhe' m.pedido.pk %}">{{ m.pedido.numero }}</a>{% endif %}</td>
+            </tr>
+          {% empty %}<tr><td colspan="6" class="text-muted">Sem movimentações.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

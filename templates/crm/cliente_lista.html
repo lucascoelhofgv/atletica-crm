@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block titulo %}Clientes{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div><h1>Clientes</h1><div class="sub">{{ paginator.count }} cadastrado(s)</div></div>
+  <div>
+    <a href="{% url 'crm:cliente_importar' %}" class="btn btn-light">Importar CSV</a>
+    <a href="{% url 'crm:cliente_exportar' %}" class="btn btn-light">Exportar</a>
+    <a href="{% url 'crm:cliente_novo' %}" class="btn btn-primary">+ Novo cliente</a>
+  </div>
+</div>
+
+<form class="filtros" method="get">
+  <input type="search" name="q" value="{{ filtros.q }}" class="form-control" placeholder="Nome, e-mail, telefone, curso">
+  <select name="categoria" class="form-select">
+    <option value="">Todas as categorias</option>
+    {% for c in categorias %}<option value="{{ c.id }}" {% if filtros.categoria == c.id|stringformat:'s' %}selected{% endif %}>{{ c.nome }}</option>{% endfor %}
+  </select>
+  <select name="relacionamento" class="form-select">
+    <option value="">Qualquer relacionamento</option>
+    {% for v, r in relacionamentos %}<option value="{{ v }}" {% if filtros.relacionamento == v %}selected{% endif %}>{{ r }}</option>{% endfor %}
+  </select>
+  <label class="form-check-label small"><input type="checkbox" name="fgv" value="1" {% if filtros.fgv == '1' %}checked{% endif %}> Só comunidade FGV</label>
+  <button class="btn btn-outline-secondary">Filtrar</button>
+</form>
+
+<div class="painel">
+  <div class="tabela-wrap">
+    <table class="grade">
+      <thead><tr><th>Nome</th><th>Categoria</th><th>Curso</th><th>Contato</th><th>Relacionamento</th><th>Tags</th></tr></thead>
+      <tbody>
+      {% for c in clientes %}
+        <tr onclick="location.href='{% url 'crm:cliente_detalhe' c.pk %}'" style="cursor:pointer">
+          <td>{{ c }}</td>
+          <td>{% if c.categoria %}<span class="badge text-bg-light">{{ c.categoria.nome }}</span>{% endif %}</td>
+          <td>{{ c.curso|default:"—" }}{% if c.periodo %} · {{ c.periodo }}{% endif %}</td>
+          <td>{{ c.email|default:c.telefone|default:"—" }}</td>
+          <td><span class="badge-status st-azul">{{ c.get_relacionamento_display }}</span></td>
+          <td>{% for t in c.tags.all %}<span class="badge text-bg-secondary">{{ t.nome }}</span> {% endfor %}</td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6" class="text-muted">Nenhum cliente encontrado. <a href="{% url 'crm:cliente_novo' %}">Cadastrar o primeiro</a>.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/_paginacao.html" %}
+</div>
+{% endblock %}

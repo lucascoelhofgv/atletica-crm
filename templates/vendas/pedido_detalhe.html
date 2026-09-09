@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load humanize widget_tweaks %}
+{% block titulo %}Pedido {{ pedido.numero }}{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div>
+    <h1>Pedido {{ pedido.numero|default:"(rascunho)" }}</h1>
+    <div class="sub">{{ pedido.cliente }} · {{ pedido.data_compra|date:"d/m/Y" }} · {{ pedido.get_status_display }}</div>
+  </div>
+  <div>
+    <a href="{% url 'vendas:pedido_recibo' pedido.pk %}" class="btn btn-light" target="_blank">Recibo / imprimir</a>
+    {% if pode_escrever %}<a href="{% url 'vendas:pedido_editar' pedido.pk %}" class="btn btn-light">Editar</a>{% endif %}
+  </div>
+</div>
+
+{% if faltas %}
+<div class="aviso">
+  ⚠️ Estoque insuficiente para:
+  {% for p, q, s in faltas %}{{ p.nome }} (precisa {{ q }}, tem {{ s }}){% if not forloop.last %}; {% endif %}{% endfor %}.
+</div>
+{% endif %}
+
+<div class="row">
+  <div class="col-lg-7">
+    <div class="painel">
+      <h2>Itens</h2>
+      <div class="tabela-wrap">
+        <table class="grade">
+          <thead><tr><th>Produto</th><th>Qtd</th><th>Preço</th><th>Desc.</th><th>Total</th></tr></thead>
+          <tbody>
+          {% for i in itens %}
+            <tr><td>{{ i.produto }}</td><td>{{ i.quantidade }}</td>
+              <td>R$ {{ i.preco_unitario|floatformat:2 }}</td>
+              <td>R$ {{ i.desconto_item|floatformat:2 }}</td>
+              <td>R$ {{ i.total|floatformat:2 }}</td></tr>
+          {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr><th colspan="4">Subtotal</th><th>R$ {{ pedido.subtotal|floatformat:2 }}</th></tr>
+            <tr><th colspan="4">Desconto</th><th>− R$ {{ pedido.desconto|floatformat:2 }}</th></tr>
+            <tr><th colspan="4">Taxa</th><th>R$ {{ pedido.taxa|floatformat:2 }}</th></tr>
+            <tr><th colspan="4">Total</th><th>R$ {{ pedido.valor_total|floatformat:2 }}</th></tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="painel">
+      <h2>Pagamentos</h2>
+      <p class="sub">Pago: R$ {{ pedido.total_pago|floatformat:2 }} · Saldo: R$ {{ pedido.saldo_devedor|floatformat:2 }}</p>
+      {% for pg in pagamentos %}
+        <div class="border-bottom py-1 small">R$ {{ pg.valor|floatformat:2 }} — {{ pg.get_forma_display }} — {{ pg.data|date:"d/m/Y" }} ({{ pg.registrado_por|default:"—" }})</div>
+      {% empty %}<p class="text-muted small">Nenhum pagamento registrado.</p>{% endfor %}
+      <form method="post" action="{% url 'vendas:pedido_pagamento' pedido.pk %}" class="mt-2">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_pagamento %}
+        <button class="btn btn-sm btn-primary mt-2">Registrar pagamento</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <div class="painel">
+      <h2>Status do pedido</h2>
+      <p class="sub">Ao mudar para um status de venda confirmada, o estoque é baixado automaticamente. Cancelar/devolver estorna.</p>
+      {% if pode_escrever %}
+      <form method="post" action="{% url 'vendas:pedido_status' pedido.pk %}">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+          <select name="status" class="form-select">
+            {% for v, r in status_choices %}<option value="{{ v }}" {% if v == pedido.status %}selected{% endif %}>{{ r }}</option>{% endfor %}
+          </select>
+          <button class="btn btn-primary">Aplicar</button>
+        </div>
+      </form>
+      {% else %}<p>{{ pedido.get_status_display }}</p>{% endif %}
+      <p class="small text-muted mt-2">Estoque baixado: {{ pedido.estoque_baixado|yesno:"sim,não" }}</p>
+    </div>
+
+    <div class="painel">
+      <h2>Informações</h2>
+      <table class="grade">
+        <tr><th>Forma de pagamento</th><td>{{ pedido.get_forma_pagamento_display|default:"—" }}</td></tr>
+        <tr><th>Responsável</th><td>{{ pedido.responsavel|default:"—" }}</td></tr>
+        <tr><th>Retirada / entrega</th><td>{{ pedido.data_entrega|date:"d/m/Y"|default:"—" }}</td></tr>
+        <tr><th>Local</th><td>{{ pedido.local_retirada|default:"—" }}</td></tr>
+        <tr><th>Criado por</th><td>{{ pedido.criado_por|default:"—" }}</td></tr>
+      </table>
+      {% if pedido.observacoes %}<p class="small mt-2">{{ pedido.observacoes }}</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

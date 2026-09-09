@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block titulo %}Quadro de tarefas{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div><h1>Quadro de tarefas</h1><div class="sub">Arraste os cartões entre as colunas para mudar o status.</div></div>
+  <a href="{% url 'tarefas:nova' %}" class="btn btn-primary">+ Nova tarefa</a>
+</div>
+
+<div class="kanban">
+  {% for valor, rotulo, itens in colunas %}
+    <div class="kanban-col" data-status="{{ valor }}">
+      <h3>{{ rotulo }} ({{ itens|length }})</h3>
+      <div class="kanban-lista" data-status="{{ valor }}">
+        {% for t in itens %}
+          <div class="kanban-card" data-id="{{ t.pk }}">
+            <div class="t"><a href="{% url 'tarefas:detalhe' t.pk %}">{{ t.titulo }}</a></div>
+            <div class="m">
+              {{ t.responsavel|default:"sem responsável" }}
+              {% if t.prazo %} · <span class="{% if t.atrasada %}text-danger{% endif %}">{{ t.prazo|date:"d/m" }}</span>{% endif %}
+              · {{ t.get_prioridade_display }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<form id="form-mov" method="post" style="display:none">{% csrf_token %}
+  <input type="hidden" name="status" id="mov-status">
+  <input type="hidden" name="next" value="{% url 'tarefas:quadro' %}">
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.kanban-lista').forEach(function(lista){
+  new Sortable(lista, {
+    group: 'tarefas', animation: 150,
+    onAdd: function(evt){
+      var id = evt.item.dataset.id;
+      var status = evt.to.dataset.status;
+      var form = document.getElementById('form-mov');
+      form.action = "/tarefas/" + id + "/status/";
+      document.getElementById('mov-status').value = status;
+      form.submit();
+    }
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% load widget_tweaks %}
+{% for campo in form.hidden_fields %}{{ campo }}{% endfor %}
+<div class="form-grid">
+  {% for campo in form.visible_fields %}
+    <div class="{% if campo.field.widget.input_type == 'textarea' or campo.name in campos_largos %}full{% endif %}">
+      <label for="{{ campo.id_for_label }}">{{ campo.label }}{% if campo.field.required %} <span class="text-danger">*</span>{% endif %}</label>
+      {% if campo.field.widget.input_type == 'checkbox' %}
+        {% render_field campo class="form-check-input" %}
+      {% elif campo.field.widget.input_type == 'select' or campo.field.widget.allow_multiple_selected %}
+        {% render_field campo class="form-select" %}
+      {% else %}
+        {% render_field campo class="form-control" %}
+      {% endif %}
+      {% if campo.help_text %}<div class="helptext">{{ campo.help_text }}</div>{% endif %}
+      {{ campo.errors }}
+    </div>
+  {% endfor %}
+</div>
+{% if form.non_field_errors %}<div class="aviso">{{ form.non_field_errors }}</div>{% endif %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Busca{% endblock %}
+{% block conteudo %}
+<div class="page-head"><h1>Resultados para "{{ termo }}"</h1></div>
+{% if not termo %}
+  <p class="text-muted">Digite algo na busca do topo.</p>
+{% else %}
+  {% for grupo, itens in resultados.items %}
+    <div class="painel">
+      <h2 class="text-capitalize">{{ grupo }}</h2>
+      {% for obj in itens %}
+        <div class="border-bottom py-2">
+          {% if grupo == 'clientes' %}<a href="{% url 'crm:cliente_detalhe' obj.pk %}">{{ obj }}</a>
+          {% elif grupo == 'produtos' %}<a href="{% url 'catalogo:produto_detalhe' obj.pk %}">{{ obj }}</a>
+          {% elif grupo == 'pedidos' %}<a href="{% url 'vendas:pedido_detalhe' obj.pk %}">{{ obj }}</a>
+          {% elif grupo == 'fornecedores' %}<a href="{% url 'fornecedores:detalhe' obj.pk %}">{{ obj }}</a>
+          {% elif grupo == 'tarefas' %}<a href="{% url 'tarefas:detalhe' obj.pk %}">{{ obj }}</a>
+          {% else %}{{ obj }}{% endif %}
+        </div>
+      {% empty %}<p class="text-muted small mb-0">Nada encontrado.</p>{% endfor %}
+    </div>
+  {% endfor %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block titulo %}{{ fornecedor }}{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div><h1>{{ fornecedor }}</h1><div class="sub">{{ fornecedor.get_categoria_display }} · {{ fornecedor.get_status_display }}</div></div>
+  <div>
+    <a href="{% url 'fornecedores:editar' fornecedor.pk %}" class="btn btn-light">Editar</a>
+    {% if user.is_superuser or "Administrador" in user.perfis %}
+    <a href="{% url 'fornecedores:excluir' fornecedor.pk %}" class="btn btn-outline-danger">Excluir</a>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="painel">
+      <h2>Dados</h2>
+      <table class="grade">
+        <tr><th>Documento</th><td>{{ fornecedor.documento|default:"—" }}</td></tr>
+        <tr><th>Contato</th><td>{{ fornecedor.contato_nome|default:"—" }}</td></tr>
+        <tr><th>E-mail</th><td>{{ fornecedor.email|default:"—" }}</td></tr>
+        <tr><th>Telefone</th><td>{{ fornecedor.telefone|default:"—" }}</td></tr>
+        <tr><th>WhatsApp</th><td>{{ fornecedor.whatsapp|default:"—" }}</td></tr>
+        <tr><th>Prazo médio</th><td>{{ fornecedor.prazo_medio_entrega|default:"—" }}</td></tr>
+      </table>
+      {% if fornecedor.produtos_servicos %}<p class="small mt-2"><strong>Fornece:</strong> {{ fornecedor.produtos_servicos }}</p>{% endif %}
+      {% if fornecedor.condicoes_comerciais %}<p class="small"><strong>Condições:</strong> {{ fornecedor.condicoes_comerciais }}</p>{% endif %}
+    </div>
+
+    <div class="painel">
+      <h2>Avaliar fornecedor</h2>
+      <form method="post" action="{% url 'fornecedores:avaliar' fornecedor.pk %}">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_avaliacao %}
+        <button class="btn btn-sm btn-primary mt-2">Salvar avaliação</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="painel">
+      <h2>Avaliações</h2>
+      {% for a in avaliacoes %}
+        <div class="border-bottom py-2 small">
+          <strong>Média {{ a.media|floatformat:1 }}</strong> — preço {{ a.preco }}, qualidade {{ a.qualidade }}, prazo {{ a.prazo }}, atendimento {{ a.atendimento }}, confiabilidade {{ a.confiabilidade }}
+          <div class="text-muted">{{ a.comentario }} — {{ a.autor|default:"—" }}, {{ a.criado_em|date:"d/m/Y" }}</div>
+        </div>
+      {% empty %}<p class="text-muted small mb-0">Sem avaliações.</p>{% endfor %}
+    </div>
+
+    <div class="painel">
+      <h2>Produtos deste fornecedor</h2>
+      {% for p in produtos %}
+        <div class="border-bottom py-1"><a href="{% url 'catalogo:produto_detalhe' p.pk %}">{{ p }}</a> — saldo {{ p.quantidade_atual }}</div>
+      {% empty %}<p class="text-muted small mb-0">Nenhum produto vinculado.</p>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

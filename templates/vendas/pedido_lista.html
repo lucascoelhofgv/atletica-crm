@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}Pedidos{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div><h1>Pedidos</h1><div class="sub">{{ paginator.count }} pedido(s)</div></div>
+  {% if pode_escrever %}<a href="{% url 'vendas:pedido_novo' %}" class="btn btn-primary">+ Novo pedido</a>{% endif %}
+</div>
+
+<form class="filtros" method="get">
+  <input type="search" name="q" value="{{ filtros.q }}" class="form-control" placeholder="Número, cliente, produto">
+  <select name="status" class="form-select">
+    <option value="">Todos os status</option>
+    {% for v, r in status_choices %}<option value="{{ v }}" {% if filtros.status == v %}selected{% endif %}>{{ r }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-secondary">Filtrar</button>
+</form>
+
+<div class="painel">
+  <div class="tabela-wrap">
+    <table class="grade">
+      <thead><tr><th>Número</th><th>Cliente</th><th>Data</th><th>Itens</th><th>Total</th><th>Pagamento</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for p in pedidos %}
+        <tr onclick="location.href='{% url 'vendas:pedido_detalhe' p.pk %}'" style="cursor:pointer">
+          <td>{{ p.numero|default:"rascunho" }}</td>
+          <td>{{ p.cliente }}</td>
+          <td>{{ p.data_compra|date:"d/m/Y" }}</td>
+          <td>{{ p.itens.count }}</td>
+          <td>R$ {{ p.valor_total|floatformat:2 }}</td>
+          <td>{{ p.get_status_pagamento_display }}</td>
+          <td>
+            {% if p.status == 'pago' or p.status == 'entregue' %}<span class="badge-status st-verde">{{ p.get_status_display }}</span>
+            {% elif p.status == 'cancelado' or p.status == 'devolvido' %}<span class="badge-status st-vermelho">{{ p.get_status_display }}</span>
+            {% elif p.status == 'aguardando_pagamento' %}<span class="badge-status st-amarelo">{{ p.get_status_display }}</span>
+            {% elif p.status == 'rascunho' %}<span class="badge-status st-cinza">{{ p.get_status_display }}</span>
+            {% else %}<span class="badge-status st-azul">{{ p.get_status_display }}</span>{% endif %}
+          </td>
+        </tr>
+      {% empty %}<tr><td colspan="7" class="text-muted">Nenhum pedido.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/_paginacao.html" %}
+</div>
+{% endblock %}

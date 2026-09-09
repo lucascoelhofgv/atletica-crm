@@ -1,0 +1,92 @@
+{% load static humanize %}
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}{{ cfg.titulo_app|default:"CRM Atlética" }}{% endblock %}</title>
+  {% if cfg.favicon %}<link rel="icon" href="{{ cfg.favicon.url }}">{% endif %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <style>
+    :root{
+      --cor-primaria: {{ cfg.cor_primaria|default:"#1B2A4A" }};
+      --cor-secundaria: {{ cfg.cor_secundaria|default:"#F4B400" }};
+    }
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-marca">
+      {% if cfg.logo %}<img src="{{ cfg.logo.url }}" alt="logo">{% else %}<i class="bi bi-trophy-fill"></i>{% endif %}
+      <span>{{ cfg.nome_organizacao|default:"Atlética FGV Rio" }}</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="{% url 'nucleo:dashboard' %}" class="{% if request.resolver_match.namespace == 'nucleo' and request.resolver_match.url_name == 'dashboard' %}ativo{% endif %}"><i class="bi bi-speedometer2"></i> Painel</a>
+      <a href="{% url 'crm:cliente_lista' %}" class="{% if request.resolver_match.namespace == 'crm' %}ativo{% endif %}"><i class="bi bi-people"></i> Clientes</a>
+      <a href="{% url 'catalogo:produto_lista' %}" class="{% if request.resolver_match.namespace == 'catalogo' %}ativo{% endif %}"><i class="bi bi-box-seam"></i> Produtos e estoque</a>
+      <a href="{% url 'vendas:pedido_lista' %}" class="{% if request.resolver_match.namespace == 'vendas' %}ativo{% endif %}"><i class="bi bi-receipt"></i> Pedidos</a>
+      <a href="{% url 'fornecedores:lista' %}" class="{% if request.resolver_match.namespace == 'fornecedores' %}ativo{% endif %}"><i class="bi bi-truck"></i> Fornecedores</a>
+      <a href="{% url 'tarefas:quadro' %}" class="{% if request.resolver_match.namespace == 'tarefas' %}ativo{% endif %}"><i class="bi bi-check2-square"></i> Tarefas</a>
+      <a href="{% url 'relatorios:indice' %}" class="{% if request.resolver_match.namespace == 'relatorios' %}ativo{% endif %}"><i class="bi bi-bar-chart"></i> Relatórios</a>
+      {% if user.is_superuser or "Administrador" in user.perfis %}
+      <div class="sidebar-sep">Administração</div>
+      <a href="{% url 'contas:membro_lista' %}"><i class="bi bi-person-badge"></i> Membros</a>
+      <a href="{% url 'nucleo:configuracao' %}"><i class="bi bi-palette"></i> Identidade visual</a>
+      <a href="{% url 'nucleo:atividades' %}"><i class="bi bi-clock-history"></i> Histórico</a>
+      <a href="{% url 'nucleo:sheets' %}"><i class="bi bi-file-earmark-spreadsheet"></i> Google Sheets</a>
+      <a href="{% url 'admin:index' %}"><i class="bi bi-tools"></i> Admin avançado</a>
+      {% endif %}
+    </nav>
+  </aside>
+
+  <div class="conteudo">
+    <header class="topbar">
+      <button class="btn btn-sm btn-light d-lg-none" onclick="document.getElementById('sidebar').classList.toggle('aberta')"><i class="bi bi-list"></i></button>
+      <form action="{% url 'nucleo:busca' %}" method="get" class="busca-global">
+        <i class="bi bi-search"></i>
+        <input type="search" name="q" placeholder="Buscar clientes, produtos, pedidos..." value="{{ request.GET.q }}">
+      </form>
+      <div class="topbar-user dropdown">
+        <a href="#" data-bs-toggle="dropdown" class="dropdown-toggle">
+          <i class="bi bi-person-circle"></i>
+          <span class="d-none d-md-inline">{{ user.nome_exibicao }}</span>
+          <small class="badge text-bg-secondary">{{ user.perfil_principal }}</small>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li><a class="dropdown-item" href="{% url 'contas:meus_dados' %}">Meus dados</a></li>
+          <li><a class="dropdown-item" href="{% url 'contas:senha_alterar' %}">Alterar senha</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <form action="{% url 'contas:logout' %}" method="post">{% csrf_token %}
+              <button class="dropdown-item" type="submit">Sair</button>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </header>
+
+    <main class="pagina">
+      {% if messages %}
+        <div class="mensagens">
+          {% for m in messages %}
+            <div class="alert alert-{{ m.tags|default:'info' }} alert-dismissible fade show" role="alert">
+              {{ m }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      {% block conteudo %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.3/Sortable.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,25 @@
+{% extends "contas/base_publico.html" %}
+{% load widget_tweaks %}
+{% block titulo %}Nova senha{% endblock %}
+{% block conteudo %}
+<h1>Definir nova senha</h1>
+{% if validlink %}
+<form method="post">
+  {% csrf_token %}
+  <div class="mb-3">
+    <label class="form-label">Nova senha</label>
+    {% render_field form.new_password1 class="form-control" %}
+    <div class="helptext">{{ form.new_password1.help_text }}</div>
+  </div>
+  <div class="mb-3">
+    <label class="form-label">Confirme a nova senha</label>
+    {% render_field form.new_password2 class="form-control" %}
+  </div>
+  {{ form.errors }}
+  <button class="btn btn-primary w-100" style="background:var(--cor-primaria);border:0">Salvar</button>
+</form>
+{% else %}
+<p class="text-danger">O link é inválido ou já foi usado. Solicite um novo.</p>
+<a href="{% url 'contas:senha_reset' %}" class="btn btn-light w-100">Solicitar novo link</a>
+{% endif %}
+{% endblock %}

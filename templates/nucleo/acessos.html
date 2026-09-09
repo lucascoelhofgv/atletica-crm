@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block titulo %}Logs de acesso{% endblock %}
+{% block conteudo %}
+<div class="page-head"><div><h1>Logs de acesso</h1><div class="sub">Entradas no sistema (sucesso e falha).</div></div></div>
+<div class="painel">
+  <div class="tabela-wrap">
+    <table class="grade">
+      <thead><tr><th>Momento</th><th>Usuário</th><th>Resultado</th><th>IP</th><th>Dispositivo</th></tr></thead>
+      <tbody>
+      {% for a in acessos %}
+        <tr>
+          <td>{{ a.momento|date:"d/m/Y H:i" }}</td>
+          <td>{{ a.usuario|default:"—" }}</td>
+          <td>{% if a.sucesso %}<span class="badge-status st-verde">OK</span>{% else %}<span class="badge-status st-vermelho">Falha</span>{% endif %}</td>
+          <td>{{ a.ip|default:"—" }}</td>
+          <td class="small text-muted">{{ a.agente|truncatechars:60 }}</td>
+        </tr>
+      {% empty %}<tr><td colspan="5" class="text-muted">Sem registros.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include "partials/_paginacao.html" %}
+</div>
+{% endblock %}
