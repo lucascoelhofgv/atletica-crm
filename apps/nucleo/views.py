@@ -18,7 +18,7 @@ from apps.tarefas.models import Tarefa
 from apps.vendas.models import ItemPedido, Pedido
 
 from .forms import ConfiguracaoForm
-from .models import Configuracao, LogAcesso, RegistroAtividade
+from .models import Configuracao, LogAcesso, RegistroAtividade, registrar_atividade
 
 PERIODOS = {
     "hoje": ("Hoje", 0),
