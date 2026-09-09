@@ -1,22 +1,23 @@
-# Blueprint do Render (https://render.com). Ao conectar o repositório o Render
-# lê este arquivo e provisiona o serviço. O plano free tem "cold start".
+# Blueprint do Render (https://render.com).
+# Ao criar o Blueprint, deixe o campo "Blueprint Path" VAZIO — este arquivo já
+# está na raiz do repositório, que é onde o Render procura por padrão.
+# O plano free "dorme" após ~15 min sem acesso (cold start de ~50 s).
 services:
   - type: web
-    name: crm-atletica
+    name: atletica-crm
     runtime: python
     plan: free
-    buildCommand: "./build.sh"
+    branch: main
+    buildCommand: "bash build.sh"
     startCommand: "gunicorn config.wsgi:application"
     envVars:
       - key: SECRET_KEY
-        generateValue: true
+        generateValue: true          # o Render gera uma chave forte sozinho
       - key: DEBUG
         value: "False"
       - key: ALLOWED_HOSTS
         value: ".onrender.com"
-      - key: CSRF_TRUSTED_ORIGINS
-        value: "https://crm-atletica.onrender.com"
       - key: DATABASE_URL
-        sync: false        # cole a connection string do Supabase no painel
+        sync: false                  # você cola a string do Supabase no painel
       - key: PYTHON_VERSION
         value: "3.12.6"

@@ -28,6 +28,16 @@ DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env("ALLOWED_HOSTS")
 CSRF_TRUSTED_ORIGINS = env("CSRF_TRUSTED_ORIGINS")
 
+# No Render, o domínio do serviço é injetado nesta variável automaticamente.
+# Assim não é preciso configurar ALLOWED_HOSTS/CSRF na mão.
+_render_host = env("RENDER_EXTERNAL_HOSTNAME", default="")
+if _render_host:
+    if _render_host not in ALLOWED_HOSTS:
+        ALLOWED_HOSTS.append(_render_host)
+    origem = f"https://{_render_host}"
+    if origem not in CSRF_TRUSTED_ORIGINS:
+        CSRF_TRUSTED_ORIGINS.append(origem)
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
