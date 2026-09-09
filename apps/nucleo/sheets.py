@@ -72,18 +72,31 @@ def _client():
             "Pacote gspread não instalado. Rode: pip install -r requirements.txt"
         ) from exc
 
-    if not settings.GOOGLE_SHEETS_SPREADSHEET_ID:
-        raise SheetsIndisponivel("GOOGLE_SHEETS_SPREADSHEET_ID não configurado.")
-
     return gspread.authorize(_credenciais())
 
 
-def abrir_planilha(cliente_gs=None):
-    """Abre a planilha configurada, com mensagens de erro claras."""
+def extrair_id_planilha(valor):
+    """Aceita um ID puro ou a URL completa do Google Sheets e devolve o ID."""
+    import re
+
+    valor = (valor or "").strip()
+    m = re.search(r"/spreadsheets/d/([a-zA-Z0-9_-]+)", valor)
+    if m:
+        return m.group(1)
+    return valor
+
+
+def abrir_planilha(cliente_gs=None, sheet_id=None):
+    """Abre uma planilha (a configurada, ou `sheet_id`) com erros claros."""
     import gspread
 
     cliente_gs = cliente_gs or _client()
-    sid = (settings.GOOGLE_SHEETS_SPREADSHEET_ID or "").strip()
+    sid = extrair_id_planilha(sheet_id or settings.GOOGLE_SHEETS_SPREADSHEET_ID)
+    if not sid:
+        raise SheetsIndisponivel(
+            "Nenhuma planilha indicada. Configure GOOGLE_SHEETS_SPREADSHEET_ID "
+            "ou informe a URL/ID da planilha de origem."
+        )
     try:
         return cliente_gs.open_by_key(sid)
     except gspread.exceptions.SpreadsheetNotFound as exc:
@@ -123,6 +136,44 @@ def _texto(valor):
     if valor is None:
         return ""
     return str(valor)
+
+
+def listar_abas(sheet_id):
+    """Nomes das abas de uma planilha de origem."""
+    planilha = abrir_planilha(sheet_id=sheet_id)
+    return [w.title for w in planilha.worksheets()]
+
+
+def ler_aba(sheet_id, aba=None):
+    """Lê uma aba e devolve (lista de dicts, cabeçalho).
+
+    A primeira linha não vazia vira o cabeçalho; as seguintes viram registros
+    ``{coluna: valor}``. Linhas totalmente vazias são ignoradas.
+    """
+    planilha = abrir_planilha(sheet_id=sheet_id)
+    ws = planilha.worksheet(aba) if aba else planilha.sheet1
+    matriz = ws.get_all_values()
+    if not matriz:
+        return [], []
+
+    idx_cab = 0
+    for i, linha in enumerate(matriz):
+        if any((c or "").strip() for c in linha):
+            idx_cab = i
+            break
+    cabecalho = [(c or "").strip() for c in matriz[idx_cab]]
+
+    registros = []
+    for linha in matriz[idx_cab + 1:]:
+        if not any((c or "").strip() for c in linha):
+            continue
+        reg = {}
+        for j, nome in enumerate(cabecalho):
+            if not nome:
+                continue
+            reg[nome] = linha[j].strip() if j < len(linha) and linha[j] else ""
+        registros.append(reg)
+    return registros, [c for c in cabecalho if c]
 
 
 def exportar_tudo():

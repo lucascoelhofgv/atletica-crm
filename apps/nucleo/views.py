@@ -197,6 +197,78 @@ def sincronizar_sheets(request):
     })
 
 
+PLANILHAS_SUGERIDAS = [
+    ("Relação com Empresas (→ Fornecedores)",
+     "1D4sv6PVM3pjGCanbKLxaOrXsgS4lF3vgDej8ORwmfLg", "fornecedores"),
+    ("Relação Padrinhos e Membros (→ Clientes)",
+     "1z7SJNAzgGruUZMSU5xBrmzhb87BdPleHHlHsDcBvC38", "clientes"),
+]
+
+
+def importar_planilha(request):
+    if not (request.user.is_authenticated and (
+        request.user.is_superuser or PERFIL_ADMIN in request.user.perfis
+    )):
+        from django.core.exceptions import PermissionDenied
+
+        raise PermissionDenied
+
+    from .forms import ImportarPlanilhaForm
+    from .importadores import IMPORTADORES
+    from .sheets import SheetsIndisponivel, ler_aba
+
+    form = ImportarPlanilhaForm(request.POST or None)
+    contexto = {"form": form, "sugeridas": PLANILHAS_SUGERIDAS}
+
+    if request.method == "POST" and form.is_valid():
+        planilha = form.cleaned_data["planilha"]
+        aba = form.cleaned_data["aba"] or None
+        destino = form.cleaned_data["destino"]
+        modo = form.cleaned_data["modo"]
+        previa = form.cleaned_data["previa"]
+        rotulo, funcao = IMPORTADORES[destino]
+
+        try:
+            linhas, cabecalho = ler_aba(planilha, aba)
+        except SheetsIndisponivel as exc:
+            messages.error(request, str(exc))
+            return render(request, "nucleo/importar.html", contexto)
+        except Exception as exc:  # pragma: no cover
+            messages.error(request, f"Não consegui ler a planilha: {exc}")
+            return render(request, "nucleo/importar.html", contexto)
+
+        contexto.update(
+            cabecalho=cabecalho,
+            amostra=[[reg.get(c, "") for c in cabecalho] for reg in linhas[:8]],
+            total_linhas=len(linhas),
+            destino_rotulo=rotulo,
+        )
+
+        if previa:
+            messages.info(
+                request,
+                f"Prévia: {len(linhas)} linha(s) lidas, colunas detectadas: "
+                f"{', '.join(cabecalho)}. Desmarque 'Só pré-visualizar' para importar.",
+            )
+        else:
+            origem = f"planilha ({aba or 'aba 1'})"
+            resumo = funcao(linhas, origem=origem, modo=modo, usuario=request.user)
+            registrar_atividade(
+                request.user, f"importou {rotulo} de planilha",
+                f"{resumo['criados']} criados, {resumo['atualizados']} atualizados",
+            )
+            msg = (f"{rotulo}: {resumo['criados']} criado(s), "
+                   f"{resumo['atualizados']} atualizado(s), "
+                   f"{resumo['ignorados']} ignorado(s).")
+            if resumo["erros"]:
+                messages.warning(request, msg + f" {len(resumo['erros'])} erro(s).")
+                contexto["erros"] = resumo["erros"][:20]
+            else:
+                messages.success(request, msg)
+
+    return render(request, "nucleo/importar.html", contexto)
+
+
 def busca_global(request):
     termo = request.GET.get("q", "").strip()
     resultados = {}
