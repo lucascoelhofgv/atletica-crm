@@ -78,6 +78,37 @@ def _client():
     return gspread.authorize(_credenciais())
 
 
+def abrir_planilha(cliente_gs=None):
+    """Abre a planilha configurada, com mensagens de erro claras."""
+    import gspread
+
+    cliente_gs = cliente_gs or _client()
+    sid = (settings.GOOGLE_SHEETS_SPREADSHEET_ID or "").strip()
+    try:
+        return cliente_gs.open_by_key(sid)
+    except gspread.exceptions.SpreadsheetNotFound as exc:
+        raise SheetsIndisponivel(
+            f"Planilha não encontrada (ID '{sid}'). Verifique se o "
+            "GOOGLE_SHEETS_SPREADSHEET_ID é só o trecho entre /d/ e /edit da URL "
+            "e se a planilha foi compartilhada como Editor com o e-mail da service "
+            "account (campo client_email do JSON)."
+        ) from exc
+    except gspread.exceptions.APIError as exc:
+        codigo = getattr(getattr(exc, "response", None), "status_code", "?")
+        if codigo == 404:
+            raise SheetsIndisponivel(
+                f"Planilha não encontrada / sem acesso (ID '{sid}'). Confira o "
+                "GOOGLE_SHEETS_SPREADSHEET_ID e o compartilhamento com a service "
+                "account."
+            ) from exc
+        if codigo == 403:
+            raise SheetsIndisponivel(
+                "Acesso negado (403). Ative a Google Sheets API e a Google Drive "
+                "API no projeto do Google Cloud e confirme o compartilhamento."
+            ) from exc
+        raise SheetsIndisponivel(f"Erro da API do Google Sheets: {exc}") from exc
+
+
 def _escrever_aba(planilha, titulo, cabecalho, linhas):
     try:
         aba = planilha.worksheet(titulo)
@@ -101,8 +132,7 @@ def exportar_tudo():
     from apps.crm.models import Cliente
     from apps.vendas.models import Pedido
 
-    cliente_gs = _client()
-    planilha = cliente_gs.open_by_key(settings.GOOGLE_SHEETS_SPREADSHEET_ID)
+    planilha = abrir_planilha()
 
     clientes = [
         [c.nome, c.email, c.telefone, c.whatsapp, c.curso, c.periodo, c.campus,

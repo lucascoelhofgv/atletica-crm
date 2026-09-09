@@ -4,8 +4,7 @@ Uma linha por festa, com receita, custo, resultado e indicadores — pronto para
 análise ano a ano (Jungle 2024/2025/2026, FRAT HOUSE...).
 """
 
-from apps.nucleo.sheets import _client, _escrever_aba
-from django.conf import settings
+from apps.nucleo.sheets import _escrever_aba, abrir_planilha
 
 from .models import Evento
 
@@ -47,8 +46,7 @@ def _linha(ev: Evento):
 
 def exportar_festas(apenas_festas=True):
     """Escreve a aba 'Festas'. Retorna a quantidade de eventos exportados."""
-    cliente = _client()
-    planilha = cliente.open_by_key(settings.GOOGLE_SHEETS_SPREADSHEET_ID)
+    planilha = abrir_planilha()
 
     qs = Evento.objects.prefetch_related("lotes", "custos", "receitas")
     if apenas_festas:
