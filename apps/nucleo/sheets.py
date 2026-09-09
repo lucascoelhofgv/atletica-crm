@@ -27,29 +27,55 @@ class SheetsIndisponivel(RuntimeError):
     pass
 
 
+ESCOPOS = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
+]
+
+
+def _credenciais():
+    """Carrega a service account de uma das duas fontes, nesta ordem:
+
+    1. GOOGLE_SERVICE_ACCOUNT_JSON  -> o JSON inteiro colado numa variável de
+       ambiente (recomendado no Render, que não tem arquivos persistentes).
+    2. GOOGLE_SERVICE_ACCOUNT_FILE  -> caminho de um arquivo .json (dev local).
+    """
+    import json
+
+    from google.oauth2.service_account import Credentials
+
+    blob = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    if blob:
+        try:
+            info = json.loads(blob)
+        except json.JSONDecodeError as exc:
+            raise SheetsIndisponivel(
+                "GOOGLE_SERVICE_ACCOUNT_JSON não é um JSON válido."
+            ) from exc
+        return Credentials.from_service_account_info(info, scopes=ESCOPOS)
+
+    caminho = settings.GOOGLE_SERVICE_ACCOUNT_FILE
+    if caminho and os.path.exists(caminho):
+        return Credentials.from_service_account_file(caminho, scopes=ESCOPOS)
+
+    raise SheetsIndisponivel(
+        "Credenciais do Google não encontradas. Defina GOOGLE_SERVICE_ACCOUNT_JSON "
+        "(conteúdo do JSON) ou GOOGLE_SERVICE_ACCOUNT_FILE (caminho do arquivo)."
+    )
+
+
 def _client():
     try:
         import gspread
-        from google.oauth2.service_account import Credentials
     except ImportError as exc:  # pragma: no cover
         raise SheetsIndisponivel(
-            "Pacotes gspread/google-auth não instalados. Rode: pip install -r requirements.txt"
+            "Pacote gspread não instalado. Rode: pip install -r requirements.txt"
         ) from exc
 
-    caminho = settings.GOOGLE_SERVICE_ACCOUNT_FILE
-    if not caminho or not os.path.exists(caminho):
-        raise SheetsIndisponivel(
-            f"Arquivo de credenciais não encontrado: {caminho}"
-        )
     if not settings.GOOGLE_SHEETS_SPREADSHEET_ID:
         raise SheetsIndisponivel("GOOGLE_SHEETS_SPREADSHEET_ID não configurado.")
 
-    escopos = [
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive",
-    ]
-    cred = Credentials.from_service_account_file(caminho, scopes=escopos)
-    return gspread.authorize(cred)
+    return gspread.authorize(_credenciais())
 
 
 def _escrever_aba(planilha, titulo, cabecalho, linhas):

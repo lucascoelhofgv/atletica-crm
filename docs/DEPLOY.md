@@ -66,19 +66,30 @@ jobs:
 
 # Integração Google Sheets
 
-1. Em https://console.cloud.google.com crie um projeto.
-2. **APIs & Services → Enable APIs** → ative **Google Sheets API** e
-   **Google Drive API**.
-3. **Credentials → Create credentials → Service account**. Crie e, na aba
-   **Keys**, gere uma chave **JSON**. Baixe o arquivo.
-4. Crie a planilha de destino no Google Sheets. **Compartilhe** a planilha com o
-   e-mail da service account (algo como `...@...iam.gserviceaccount.com`), como
-   **Editor**.
+1. Em https://console.cloud.google.com crie um projeto (ex.: "CRM Atlética").
+2. **APIs & Services → Enabled APIs & services → + Enable APIs and services** →
+   ative **Google Sheets API** e **Google Drive API** (uma de cada vez).
+3. **APIs & Services → Credentials → Create credentials → Service account**.
+   Dê um nome (ex.: `crm-sheets`), crie. Abra a service account criada, aba
+   **Keys → Add key → Create new key → JSON**. Baixa um arquivo `.json`.
+4. Crie uma planilha nova no Google Sheets (ex.: "CRM Atlética — Dados").
+   **Compartilhe** essa planilha com o e-mail da service account (algo como
+   `crm-sheets@crm-atletica.iam.gserviceaccount.com`, está dentro do JSON no
+   campo `client_email`), com permissão de **Editor**.
 5. Configure o ambiente:
-   - `GOOGLE_SERVICE_ACCOUNT_FILE` = caminho do JSON (no Render, use um
-     *Secret File* e aponte para `/etc/secrets/google.json`).
    - `GOOGLE_SHEETS_SPREADSHEET_ID` = o trecho entre `/d/` e `/edit` da URL da
      planilha.
-6. Sincronize:
-   - manualmente: menu **Google Sheets** no sistema → "Sincronizar agora";
-   - por linha de comando / agendado: `python manage.py exportar_sheets`.
+   - **Credenciais** — escolha UMA forma:
+     - **Render / produção (recomendado):** `GOOGLE_SERVICE_ACCOUNT_JSON` =
+       o conteúdo **inteiro** do arquivo `.json`, colado como valor da variável
+       (o Render aceita várias linhas no campo de valor).
+     - **Dev local:** salve o `.json` como `google-service-account.json` na raiz
+       do projeto (já está no `.gitignore`) ou aponte `GOOGLE_SERVICE_ACCOUNT_FILE`
+       para o caminho dele.
+6. No Render: **Environment → Add Environment Variable**, adicione as duas acima
+   e salve (o Render redeploya sozinho).
+7. Sincronize:
+   - manualmente: menu **Google Sheets** no sistema → "Sincronizar dados gerais"
+     e "Sincronizar aba Festas";
+   - agendado (opcional): `python manage.py exportar_sheets` e
+     `python manage.py exportar_festas`.
