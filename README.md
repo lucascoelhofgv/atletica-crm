@@ -35,6 +35,9 @@ o histórico.
 - **Fornecedores** — cadastro, categorias, avaliação (preço, qualidade, prazo…).
 - **Tarefas** — lista, quadro Kanban com arrastar-e-soltar, comentários,
   vínculo com cliente/pedido/fornecedor.
+- **Eventos e festas** — lotes de ingresso, custos fixos e variáveis, receitas
+  extras e P&L do evento (resultado, margem, ticket médio, custo por pessoa,
+  breakeven). Exporta a aba **Festas** no Google Sheets para análise ano a ano.
 - **Relatórios** — vendas por período, produtos vendidos, estoque, clientes;
   exportação CSV.
 - **Administração** — membros e perfis, identidade visual, histórico de

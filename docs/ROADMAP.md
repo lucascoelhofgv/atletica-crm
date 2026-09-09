@@ -16,18 +16,23 @@
 - [x] Histórico de atividades + logs de acesso + auditoria campo a campo (Django Admin)
 - [x] Busca global
 - [x] Integração Google Sheets (exportação/sincronização manual e agendável)
+- [x] **Eventos e festas**: lotes de ingresso, custos fixos/variáveis, receitas
+      extras, resultado (lucro/prejuízo), margem, ticket médio, custo por pessoa,
+      breakeven — modelado a partir das planilhas Jungle / FRAT HOUSE
+- [x] Aba **Festas** no Google Sheets (uma linha por festa, para análise ano a ano)
 - [x] Dados de demonstração removíveis
 - [x] Layout responsivo (celular/tablet/desktop)
 
 ## Fase 2
 
-- [ ] Módulo **Eventos** (inscrições, custos x previsto, produtos usados, resultado)
 - [ ] Módulo **Financeiro operacional** completo (receitas/despesas, centros de
       custo, contas a receber, anexos de comprovante)
 - [ ] **Pipelines** visuais configuráveis (vendas, patrocínio, parcerias)
 - [ ] Notificações (tarefas vencendo, pedidos pendentes) — in-app e e-mail
 - [ ] Storage S3-compatível para uploads persistentes
 - [ ] Importação/exportação avançada (mapeamento de colunas, atualização em massa)
+- [ ] Importador de Fornecedores por CSV (para a planilha "Relação com Empresas")
+- [ ] Puxar dados do Google Sheets de volta para o CRM (hoje a sincronização é só de saída)
 - [ ] Relatórios avançados com gráficos
 
 ## Fase 3

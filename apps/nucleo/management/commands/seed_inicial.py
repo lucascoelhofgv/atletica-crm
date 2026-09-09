@@ -42,13 +42,13 @@ MAPA_PERFIS = {
     PERFIL_DIRETORIA: {
         "crm": PERMISSOES_EDICAO, "catalogo": PERMISSOES_EDICAO,
         "vendas": PERMISSOES_EDICAO, "fornecedores": PERMISSOES_EDICAO,
-        "tarefas": PERMISSOES_TOTAIS, "nucleo": PERMISSOES_LEITURA,
-        "contas": PERMISSOES_LEITURA,
+        "tarefas": PERMISSOES_TOTAIS, "eventos": PERMISSOES_EDICAO,
+        "nucleo": PERMISSOES_LEITURA, "contas": PERMISSOES_LEITURA,
     },
     PERFIL_OPERACIONAL: {
         "crm": PERMISSOES_EDICAO, "vendas": PERMISSOES_EDICAO,
-        "tarefas": PERMISSOES_EDICAO, "catalogo": PERMISSOES_LEITURA,
-        "fornecedores": PERMISSOES_LEITURA,
+        "tarefas": PERMISSOES_EDICAO, "eventos": PERMISSOES_EDICAO,
+        "catalogo": PERMISSOES_LEITURA, "fornecedores": PERMISSOES_LEITURA,
     },
     PERFIL_ESTOQUE: {
         "catalogo": PERMISSOES_TOTAIS, "fornecedores": PERMISSOES_LEITURA,
@@ -57,7 +57,7 @@ MAPA_PERFIS = {
     PERFIL_FINANCEIRO: {
         "vendas": PERMISSOES_EDICAO, "crm": PERMISSOES_LEITURA,
         "catalogo": PERMISSOES_LEITURA, "fornecedores": PERMISSOES_LEITURA,
-        "tarefas": PERMISSOES_EDICAO,
+        "tarefas": PERMISSOES_EDICAO, "eventos": PERMISSOES_LEITURA,
     },
     PERFIL_VISUALIZACAO: "somente_leitura",
 }
@@ -247,7 +247,50 @@ class Command(BaseCommand):
                 descricao=DEMO_TAG,
             )
 
+        self._festas_demo(hoje)
+
+    def _festas_demo(self, hoje):
+        from apps.eventos.models import CustoEvento, Evento, LoteIngresso
+
+        for nome, dias, local, lotes, custos in [
+            (
+                "Jungle 2026 (DEMO)", -120, "Casa da Gávea",
+                [("Promocional", 12, 12, 85), ("1º Lote", 101, 101, 95),
+                 ("2º Lote", 70, 67, 100), ("Porta", 10, 9, 200)],
+                [("fixo", "Local", 1, 4500), ("fixo", "Som e iluminação", 1, 1800),
+                 ("fixo", "Segurança + limpeza + bombeiro", 1, 1500),
+                 ("fixo", "DJ", 1, 800), ("variavel", "Caipirinhas (todos sabores)", 1, 1150),
+                 ("variavel", "Energéticos", 1, 320)],
+            ),
+            (
+                "FRAT HOUSE 2026 (DEMO)", -45, "Vale das Palmeiras",
+                [("Promocional", 10, 10, 80), ("1º Lote", 60, 58, 95),
+                 ("2º Lote", 60, 40, 100), ("Porta", 10, 6, 200)],
+                [("fixo", "Local", 1, 4500), ("fixo", "Som e iluminação", 1, 1800),
+                 ("fixo", "Segurança + limpeza", 1, 1500), ("fixo", "DJ", 1, 800),
+                 ("variavel", "Bebidas", 1, 900)],
+            ),
+        ]:
+            ev = Evento.objects.create(
+                nome=nome, tipo=Evento.Tipo.FESTA, status=Evento.Status.REALIZADO,
+                data=hoje + timedelta(days=dias), local=local,
+                staff_cortesias=30, observacoes=DEMO_TAG, demo=True,
+            )
+            for i, (ln, qp, qv, val) in enumerate(lotes):
+                LoteIngresso.objects.create(
+                    evento=ev, nome=ln, quantidade_prevista=qp,
+                    quantidade_vendida=qv, valor_unitario=val, ordem=i,
+                )
+            for tipo, item, qtd, val in custos:
+                CustoEvento.objects.create(
+                    evento=ev, tipo=tipo, item=item, quantidade=qtd,
+                    valor_unitario=val, valor_pago=val,
+                    situacao=CustoEvento.Situacao.PAGO,
+                )
+
     def _remover_demo(self):
+        from apps.eventos.models import Evento
+
         n = 0
         for modelo in (Pedido, Tarefa, Produto, Cliente, Fornecedor):
             qs = modelo.objects.filter(observacoes__contains=DEMO_TAG) \
@@ -256,4 +299,7 @@ class Command(BaseCommand):
                 qs = modelo.objects.filter(descricao__contains=DEMO_TAG)
             n += qs.count()
             qs.delete()
+        festas = Evento.objects.filter(demo=True)
+        n += festas.count()
+        festas.delete()
         self.stdout.write(self.style.SUCCESS(f"Dados de demonstração removidos ({n})."))

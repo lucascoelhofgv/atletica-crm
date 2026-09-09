@@ -2,22 +2,35 @@
 {% block titulo %}Google Sheets{% endblock %}
 {% block conteudo %}
 <div class="page-head"><div><h1>Integração com Google Sheets</h1>
-  <div class="sub">Exporta Clientes, Produtos e Pedidos para uma planilha do Google.</div></div></div>
+  <div class="sub">Exporta dados do CRM para uma planilha do Google, para análises e relatórios.</div></div></div>
 
-<div class="painel" style="max-width:640px">
+<div class="painel" style="max-width:680px">
   {% if configurado %}
-    <p>A integração está configurada. Ao sincronizar, as abas <strong>Clientes</strong>,
-    <strong>Produtos</strong> e <strong>Pedidos</strong> da planilha são recriadas com os dados atuais.</p>
-    <form method="post">
+    <p>A integração está configurada.</p>
+
+    <h2>Dados gerais</h2>
+    <p class="sub">Recria as abas <strong>Clientes</strong>, <strong>Produtos</strong> e <strong>Pedidos</strong>.</p>
+    <form method="post" action="{% url 'nucleo:sheets' %}">
       {% csrf_token %}
-      <button class="btn btn-primary">Sincronizar agora</button>
+      <button class="btn btn-primary">Sincronizar dados gerais</button>
+    </form>
+
+    <hr>
+
+    <h2>Festas</h2>
+    <p class="sub">Recria a aba <strong>Festas</strong> — uma linha por festa com ingressos,
+    receita, custo, resultado, margem, ticket médio, custo por pessoa e breakeven.
+    Ideal para comparar Jungle / FRAT HOUSE ano a ano.</p>
+    <form method="post" action="{% url 'eventos:sheets_festas' %}">
+      {% csrf_token %}
+      <button class="btn btn-primary">Sincronizar aba Festas</button>
     </form>
   {% else %}
     <div class="aviso">A integração ainda não foi configurada. Veja <code>docs/DEPLOY.md</code>
     (seção Google Sheets): é preciso uma <em>service account</em> do Google Cloud e o ID da planilha
     nas variáveis <code>GOOGLE_SERVICE_ACCOUNT_FILE</code> e <code>GOOGLE_SHEETS_SPREADSHEET_ID</code>.</div>
   {% endif %}
-  <p class="sub mt-2">Também é possível agendar a sincronização automática com o comando
-  <code>python manage.py exportar_sheets</code> (Cron Job do Render ou GitHub Actions).</p>
+  <p class="sub mt-3">Sincronização automática (agendável no Render / GitHub Actions):
+  <code>python manage.py exportar_sheets</code> e <code>python manage.py exportar_festas</code>.</p>
 </div>
 {% endblock %}

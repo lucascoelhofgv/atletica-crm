@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block titulo %}{{ evento.nome }}{% endblock %}
+{% block conteudo %}
+<div class="page-head">
+  <div>
+    <h1>{{ evento.nome }}</h1>
+    <div class="sub">{{ evento.get_tipo_display }} · {{ evento.data|date:"d/m/Y" }}
+      {% if evento.local %} · {{ evento.local }}{% endif %} · {{ evento.get_status_display }}</div>
+  </div>
+  <div>
+    {% if pode_escrever %}<a href="{% url 'eventos:editar' evento.pk %}" class="btn btn-light">Editar</a>{% endif %}
+    {% if user.is_superuser or "Administrador" in user.perfis %}
+    <a href="{% url 'eventos:excluir' evento.pk %}" class="btn btn-outline-danger">Excluir</a>{% endif %}
+  </div>
+</div>
+
+<div class="cards-kpi">
+  <div class="kpi"><div class="rot">Ingressos vendidos</div><div class="val">{{ evento.ingressos_vendidos }}{% if evento.ingressos_previstos %} <small style="font-size:.9rem;color:#888">/ {{ evento.ingressos_previstos }}</small>{% endif %}</div></div>
+  <div class="kpi"><div class="rot">Receita total</div><div class="val">R$ {{ evento.receita_total|floatformat:2|intcomma }}</div></div>
+  <div class="kpi"><div class="rot">Custo total</div><div class="val">R$ {{ evento.custo_total|floatformat:2|intcomma }}</div></div>
+  <div class="kpi {% if evento.resultado < 0 %}alerta{% endif %}"><div class="rot">Resultado</div><div class="val">R$ {{ evento.resultado|floatformat:2|intcomma }}</div></div>
+  <div class="kpi"><div class="rot">Margem</div><div class="val">{% if evento.margem != None %}{{ evento.margem|floatformat:3 }}{% else %}—{% endif %}</div></div>
+  <div class="kpi"><div class="rot">Ticket médio</div><div class="val">{% if evento.ticket_medio %}R$ {{ evento.ticket_medio|floatformat:2 }}{% else %}—{% endif %}</div></div>
+  <div class="kpi"><div class="rot">Custo por pessoa</div><div class="val">{% if evento.custo_por_pessoa %}R$ {{ evento.custo_por_pessoa|floatformat:2 }}{% else %}—{% endif %}</div></div>
+  <div class="kpi"><div class="rot">Breakeven (ingr.)</div><div class="val">{{ evento.breakeven_ingressos|default:"—" }}</div></div>
+</div>
+
+<div class="row">
+  <div class="col-lg-6">
+    <div class="painel">
+      <h2>Lotes de ingresso</h2>
+      <div class="tabela-wrap">
+        <table class="grade">
+          <thead><tr><th>Lote</th><th>Prev.</th><th>Vend.</th><th>Valor</th><th>Total vend.</th><th></th></tr></thead>
+          <tbody>
+          {% for l in lotes %}
+            <tr>
+              <td>{{ l.nome }}</td><td>{{ l.quantidade_prevista }}</td>
+              <td>{{ l.quantidade_vendida }}</td>
+              <td>R$ {{ l.valor_unitario|floatformat:2 }}</td>
+              <td>R$ {{ l.total_vendido|floatformat:2 }}</td>
+              <td>{% if pode_escrever %}<form method="post" action="{% url 'eventos:lote_del' evento.pk l.pk %}">{% csrf_token %}<button class="btn btn-sm btn-link text-danger p-0">×</button></form>{% endif %}</td>
+            </tr>
+          {% empty %}<tr><td colspan="6" class="text-muted">Sem lotes.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if pode_escrever %}
+      <form method="post" action="{% url 'eventos:lote_add' evento.pk %}" class="mt-2">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_lote %}
+        <button class="btn btn-sm btn-primary mt-2">Adicionar lote</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="painel">
+      <h2>Receitas extras</h2>
+      {% for r in receitas %}
+        <div class="border-bottom py-1 small d-flex justify-content-between">
+          <span>{{ r.get_origem_display }} — {{ r.descricao }} {% if not r.recebido %}<span class="badge-status st-amarelo">a receber</span>{% endif %}</span>
+          <span>R$ {{ r.valor|floatformat:2 }}
+            {% if pode_escrever %}<form method="post" action="{% url 'eventos:receita_del' evento.pk r.pk %}" style="display:inline">{% csrf_token %}<button class="btn btn-sm btn-link text-danger p-0">×</button></form>{% endif %}
+          </span>
+        </div>
+      {% empty %}<p class="text-muted small mb-0">Nenhuma receita extra.</p>{% endfor %}
+      {% if pode_escrever %}
+      <form method="post" action="{% url 'eventos:receita_add' evento.pk %}" class="mt-2">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_receita %}
+        <button class="btn btn-sm btn-primary mt-2">Adicionar receita</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="painel">
+      <h2>Custos</h2>
+      <p class="sub">Pago: R$ {{ evento.custo_pago|floatformat:2 }} · A pagar: R$ {{ evento.custo_a_pagar|floatformat:2 }}</p>
+      <div class="tabela-wrap">
+        <table class="grade">
+          <thead><tr><th>Item</th><th>Tipo</th><th>Qtd</th><th>Unit.</th><th>Total</th><th>Situação</th><th></th></tr></thead>
+          <tbody>
+          {% for c in custos %}
+            <tr>
+              <td>{{ c.item }}{% if c.fornecedor %}<br><small class="text-muted">{{ c.fornecedor }}</small>{% endif %}</td>
+              <td>{{ c.get_tipo_display }}</td>
+              <td>{{ c.quantidade|floatformat:"-2" }}</td>
+              <td>R$ {{ c.valor_unitario|floatformat:2 }}</td>
+              <td>R$ {{ c.valor_total|floatformat:2 }}</td>
+              <td>{{ c.get_situacao_display }}</td>
+              <td>{% if pode_escrever %}<form method="post" action="{% url 'eventos:custo_del' evento.pk c.pk %}">{% csrf_token %}<button class="btn btn-sm btn-link text-danger p-0">×</button></form>{% endif %}</td>
+            </tr>
+          {% empty %}<tr><td colspan="7" class="text-muted">Sem custos.</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if pode_escrever %}
+      <form method="post" action="{% url 'eventos:custo_add' evento.pk %}" class="mt-2">
+        {% csrf_token %}
+        {% include "partials/_campos.html" with form=form_custo %}
+        <button class="btn btn-sm btn-primary mt-2">Adicionar custo</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <div class="painel">
+      <h2>Informações</h2>
+      <table class="grade">
+        <tr><th>Capacidade</th><td>{{ evento.capacidade|default:"—" }}</td></tr>
+        <tr><th>Público estimado</th><td>{{ evento.publico_estimado }}</td></tr>
+        <tr><th>Staff / cortesias</th><td>{{ evento.staff_cortesias }}</td></tr>
+        <tr><th>Responsável</th><td>{{ evento.responsavel|default:"—" }}</td></tr>
+        <tr><th>Orçamento previsto</th><td>R$ {{ evento.orcamento_previsto|floatformat:2 }}</td></tr>
+        <tr><th>Fornecedores</th><td>{% for f in evento.fornecedores.all %}{{ f }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td></tr>
+      </table>
+      {% if evento.observacoes %}<p class="small mt-2">{{ evento.observacoes }}</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

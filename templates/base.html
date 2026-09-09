@@ -20,7 +20,11 @@
 <div class="app-shell">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-marca">
-      {% if cfg.logo %}<img src="{{ cfg.logo.url }}" alt="logo">{% else %}<i class="bi bi-trophy-fill"></i>{% endif %}
+      {% if cfg.logo %}
+        <img src="{{ cfg.logo.url }}" alt="{{ cfg.nome_organizacao }}">
+      {% else %}
+        <i class="bi bi-shield-fill"></i>
+      {% endif %}
       <span>{{ cfg.nome_organizacao|default:"Atlética FGV Rio" }}</span>
     </div>
     <nav class="sidebar-nav">
@@ -30,6 +34,7 @@
       <a href="{% url 'vendas:pedido_lista' %}" class="{% if request.resolver_match.namespace == 'vendas' %}ativo{% endif %}"><i class="bi bi-receipt"></i> Pedidos</a>
       <a href="{% url 'fornecedores:lista' %}" class="{% if request.resolver_match.namespace == 'fornecedores' %}ativo{% endif %}"><i class="bi bi-truck"></i> Fornecedores</a>
       <a href="{% url 'tarefas:quadro' %}" class="{% if request.resolver_match.namespace == 'tarefas' %}ativo{% endif %}"><i class="bi bi-check2-square"></i> Tarefas</a>
+      <a href="{% url 'eventos:lista' %}" class="{% if request.resolver_match.namespace == 'eventos' %}ativo{% endif %}"><i class="bi bi-calendar-event"></i> Eventos e festas</a>
       <a href="{% url 'relatorios:indice' %}" class="{% if request.resolver_match.namespace == 'relatorios' %}ativo{% endif %}"><i class="bi bi-bar-chart"></i> Relatórios</a>
       {% if user.is_superuser or "Administrador" in user.perfis %}
       <div class="sidebar-sep">Administração</div>
