@@ -144,6 +144,15 @@ def listar_abas(sheet_id):
     return [w.title for w in planilha.worksheets()]
 
 
+def ler_grade(sheet_id, aba=None):
+    """Devolve a aba inteira como matriz de strings (linhas x colunas). Usado
+    pelos importadores que precisam ler blocos soltos (não uma tabela simples
+    com cabeçalho único) — ex.: planilhas de festa Jungle/FRAT HOUSE."""
+    planilha = abrir_planilha(sheet_id=sheet_id)
+    ws = planilha.worksheet(aba) if aba else planilha.sheet1
+    return ws.get_all_values()
+
+
 def ler_aba(sheet_id, aba=None):
     """Lê uma aba e devolve (lista de dicts, cabeçalho).
 
