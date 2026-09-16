@@ -14,14 +14,14 @@ o histórico.
 
 | Camada | Tecnologia |
 |---|---|
-| Backend | Django 5 (Python 3.12) |
+| Backend | Django 5 (Python 3.12) + Django REST Framework (API JSON em `/api/`) |
 | Banco | PostgreSQL em produção (Supabase free) · SQLite no dev |
-| Auth / perfis | Django auth + Grupos (6 perfis) |
+| Auth / perfis | Django auth por sessão + Grupos (6 perfis); mesma sessão vale para a API |
 | Auditoria | django-simple-history |
-| Frontend | Templates Django + Bootstrap 5 + HTMX + SortableJS (sem build de Node) |
-| Arquivos | armazenamento local no dev; Supabase Storage/R2 em produção |
+| Frontend | React 19 + Vite + TypeScript em `frontend/` (Tailwind v4, shadcn/ui, TanStack Router/Query, Recharts). Build servido pelo Django na raiz via WhiteNoise |
+| Arquivos | armazenamento local no dev; Supabase Storage/R2 em produção (pendente) |
 | Integração | Google Sheets (gspread) |
-| Deploy | Render (web, free) + Supabase (Postgres, free) + WhiteNoise |
+| Deploy | Render (web free, **Docker**) + Supabase (Postgres free) + WhiteNoise |
 
 ## Módulos
 

@@ -1,0 +1,8 @@
+node_modules
+dist
+*.local
+.DS_Store
+capturas
+
+# Cache incremental do tsc
+*.tsbuildinfo

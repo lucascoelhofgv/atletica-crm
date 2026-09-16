@@ -12,7 +12,7 @@ class Configuracao(models.Model):
     """
 
     nome_organizacao = models.CharField(
-        "nome da organização", max_length=120, default="Atlética FGV Rio"
+        "nome da organização", max_length=120, default="Atlética Gorilada FGV"
     )
     titulo_app = models.CharField(
         "título da aplicação", max_length=120, default="CRM Atlética"
@@ -27,9 +27,9 @@ class Configuracao(models.Model):
         "imagem de capa / banner", upload_to="identidade/", blank=True, null=True
     )
 
-    cor_primaria = models.CharField("cor primária", max_length=7, default="#1B2A4A")
+    cor_primaria = models.CharField("cor primária", max_length=7, default="#182A76")
     cor_secundaria = models.CharField(
-        "cor secundária", max_length=7, default="#F4B400"
+        "cor secundária", max_length=7, default="#FFE104"
     )
 
     email_contato = models.EmailField("e-mail de contato", blank=True)
@@ -39,7 +39,7 @@ class Configuracao(models.Model):
     endereco = models.CharField("endereço", max_length=255, blank=True)
 
     modo_escuro_disponivel = models.BooleanField(
-        "disponibilizar modo escuro", default=False
+        "disponibilizar modo escuro", default=True
     )
 
     atualizado_em = models.DateTimeField("atualizado em", auto_now=True)

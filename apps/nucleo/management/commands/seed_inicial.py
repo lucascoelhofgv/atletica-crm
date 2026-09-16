@@ -119,7 +119,7 @@ class Command(BaseCommand):
     def _configuracao(self):
         cfg = Configuracao.carregar()
         if not cfg.nome_organizacao:
-            cfg.nome_organizacao = "Atlética FGV Rio"
+            cfg.nome_organizacao = "Atlética Gorilada FGV"
         cfg.save()
         self.stdout.write("  configuração de identidade: ok")
 

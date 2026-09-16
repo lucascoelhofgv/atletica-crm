@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from django.utils import timezone
 
 
@@ -70,7 +69,7 @@ class Tarefa(models.Model):
         return self.titulo
 
     def get_absolute_url(self):
-        return reverse("tarefas:detalhe", args=[self.pk])
+        return f"/tarefas/{self.pk}"  # tela do SPA
 
     @property
     def atrasada(self):

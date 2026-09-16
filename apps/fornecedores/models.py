@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
 
@@ -68,7 +67,7 @@ class Fornecedor(models.Model):
         return self.nome_fantasia or self.nome
 
     def get_absolute_url(self):
-        return reverse("fornecedores:detalhe", args=[self.pk])
+        return f"/fornecedores/{self.pk}"  # tela do SPA
 
     @property
     def nota_media(self):

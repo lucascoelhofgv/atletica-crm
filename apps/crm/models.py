@@ -2,7 +2,6 @@
 
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
 
@@ -113,7 +112,7 @@ class Cliente(models.Model):
         return self.nome_social or self.nome
 
     def get_absolute_url(self):
-        return reverse("crm:cliente_detalhe", args=[self.pk])
+        return f"/clientes/{self.pk}"  # tela do SPA
 
     @property
     def total_gasto(self):

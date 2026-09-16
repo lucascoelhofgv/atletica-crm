@@ -10,7 +10,6 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models, transaction
-from django.urls import reverse
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
@@ -109,7 +108,7 @@ class Pedido(models.Model):
         return f"{self.numero or 'Rascunho'} - {self.cliente}"
 
     def get_absolute_url(self):
-        return reverse("vendas:pedido_detalhe", args=[self.pk])
+        return f"/pedidos/{self.pk}"  # tela do SPA
 
     # -- Calculos -------------------------------------------------------------
     @property

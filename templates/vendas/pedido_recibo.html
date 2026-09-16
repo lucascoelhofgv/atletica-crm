@@ -1,52 +1,75 @@
-{% load humanize %}
+{% load static %}
 <!doctype html>
 <html lang="pt-br">
 <head>
   <meta charset="utf-8">
-  <title>Recibo — Pedido {{ pedido.numero }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recibo · Pedido {{ pedido.numero|default:"rascunho" }} · {{ cfg.nome_organizacao|default:"Atlética Gorilada FGV" }}</title>
+  <link rel="icon" href="{% if cfg.favicon %}{{ cfg.favicon.url }}{% else %}{% static 'app/marca/logo-64.png' %}{% endif %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=League+Spartan:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body{font-family:system-ui,Arial,sans-serif;max-width:720px;margin:2rem auto;color:#111;padding:0 1rem}
-    h1{font-size:1.2rem} table{width:100%;border-collapse:collapse;margin:1rem 0}
-    th,td{border-bottom:1px solid #ccc;padding:.4rem;text-align:left;font-size:.9rem}
-    tfoot th{border:0}
-    .top{display:flex;justify-content:space-between;align-items:center}
-    .btn{display:inline-block;padding:.4rem .9rem;background:#1B2A4A;color:#fff;border-radius:6px;text-decoration:none}
-    @media print{.no-print{display:none}}
+    /* Recibo imprimível. Mesmos tokens da marca usados no painel React. */
+    :root{--royal:{{ cfg.cor_primaria|default:"#182A76" }};--amarelo:{{ cfg.cor_secundaria|default:"#FFE104" }};--navy:#000638;
+      --tinta:#0b1020;--tinta-fraca:#5b6480;--borda:#e3e6f0}
+    *{box-sizing:border-box}
+    body{font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;color:var(--tinta);background:#fff}
+    .topo{display:flex;justify-content:space-between;align-items:center;gap:1rem;padding-bottom:1rem;border-bottom:3px solid var(--amarelo)}
+    .marca{display:flex;align-items:center;gap:.75rem}
+    .marca img{height:44px;width:auto}
+    h1{font-family:"League Spartan",sans-serif;font-size:1.35rem;line-height:1.1;margin:0;color:var(--royal)}
+    .sub{font-size:.85rem;color:var(--tinta-fraca);margin-top:.15rem}
+    .botao{display:inline-block;padding:.55rem 1rem;background:var(--royal);color:#fff;border-radius:10px;text-decoration:none;font-weight:600;font-size:.9rem}
+    .dados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem 1.5rem;margin:1.25rem 0;font-size:.92rem}
+    .dados b{color:var(--tinta-fraca);font-weight:500;display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em}
+    table{width:100%;border-collapse:collapse;margin:1rem 0}
+    th,td{border-bottom:1px solid var(--borda);padding:.55rem .4rem;text-align:left;font-size:.9rem}
+    thead th{font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;color:var(--tinta-fraca);font-weight:500}
+    td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+    tfoot th{border:0;padding:.35rem .4rem;font-weight:500;color:var(--tinta-fraca)}
+    tfoot tr.total th{font-family:"League Spartan",sans-serif;font-size:1.1rem;color:var(--navy);border-top:2px solid var(--royal);padding-top:.6rem}
+    .rodape{font-size:.78rem;color:var(--tinta-fraca);margin-top:2rem}
+    @media print{.no-print{display:none}body{margin:0;max-width:none}}
   </style>
 </head>
 <body>
-  <div class="top">
-    <div>
-      <h1>{{ cfg.nome_organizacao|default:"Atlética FGV Rio" }}</h1>
-      <div>Recibo / resumo do pedido</div>
+  <header class="topo">
+    <div class="marca">
+      <img src="{% if cfg.logo %}{{ cfg.logo.url }}{% else %}{% static 'app/marca/logo-64.png' %}{% endif %}" alt="">
+      <div>
+        <h1>{{ cfg.nome_organizacao|default:"Atlética Gorilada FGV" }}</h1>
+        <div class="sub">Recibo / resumo do pedido {{ pedido.numero|default:"(rascunho)" }}</div>
+      </div>
     </div>
-    <a href="#" class="btn no-print" onclick="window.print();return false">Imprimir / salvar PDF</a>
-  </div>
-  <hr>
-  <p><strong>Pedido:</strong> {{ pedido.numero|default:"(rascunho)" }}<br>
-     <strong>Cliente:</strong> {{ pedido.cliente }}<br>
-     <strong>Data:</strong> {{ pedido.data_compra|date:"d/m/Y" }}<br>
-     <strong>Status:</strong> {{ pedido.get_status_display }} — pagamento {{ pedido.get_status_pagamento_display }}</p>
+    <a href="#" class="botao no-print" onclick="window.print();return false">Imprimir / salvar PDF</a>
+  </header>
+
+  <section class="dados">
+    <div><b>Cliente</b>{{ pedido.cliente }}</div>
+    <div><b>Data</b>{{ pedido.data_compra|date:"d/m/Y" }}</div>
+    <div><b>Status</b>{{ pedido.get_status_display }}</div>
+    <div><b>Pagamento</b>{{ pedido.get_status_pagamento_display }}{% if pedido.get_forma_pagamento_display %} · {{ pedido.get_forma_pagamento_display }}{% endif %}</div>
+    {% if pedido.local_retirada %}<div><b>Local de retirada</b>{{ pedido.local_retirada }}</div>{% endif %}
+  </section>
 
   <table>
-    <thead><tr><th>Produto</th><th>Qtd</th><th>Preço unit.</th><th>Total</th></tr></thead>
+    <thead><tr><th>Produto</th><th class="num">Qtd</th><th class="num">Preço unit.</th><th class="num">Total</th></tr></thead>
     <tbody>
     {% for i in itens %}
-      <tr><td>{{ i.produto }}</td><td>{{ i.quantidade }}</td>
-        <td>R$ {{ i.preco_unitario|floatformat:2 }}</td>
-        <td>R$ {{ i.total|floatformat:2 }}</td></tr>
+      <tr><td>{{ i.produto }}</td><td class="num">{{ i.quantidade }}</td>
+        <td class="num">R$ {{ i.preco_unitario|floatformat:2 }}</td>
+        <td class="num">R$ {{ i.total|floatformat:2 }}</td></tr>
     {% endfor %}
     </tbody>
     <tfoot>
-      <tr><th colspan="3">Subtotal</th><th>R$ {{ pedido.subtotal|floatformat:2 }}</th></tr>
-      <tr><th colspan="3">Desconto</th><th>− R$ {{ pedido.desconto|floatformat:2 }}</th></tr>
-      <tr><th colspan="3">Taxa</th><th>R$ {{ pedido.taxa|floatformat:2 }}</th></tr>
-      <tr><th colspan="3">TOTAL</th><th>R$ {{ pedido.valor_total|floatformat:2 }}</th></tr>
+      <tr><th colspan="3" class="num">Subtotal</th><th class="num">R$ {{ pedido.subtotal|floatformat:2 }}</th></tr>
+      <tr><th colspan="3" class="num">Desconto</th><th class="num">− R$ {{ pedido.desconto|floatformat:2 }}</th></tr>
+      <tr><th colspan="3" class="num">Taxa</th><th class="num">R$ {{ pedido.taxa|floatformat:2 }}</th></tr>
+      <tr class="total"><th colspan="3" class="num">Total</th><th class="num">R$ {{ pedido.valor_total|floatformat:2 }}</th></tr>
     </tfoot>
   </table>
 
-  <p><strong>Forma de pagamento:</strong> {{ pedido.get_forma_pagamento_display|default:"—" }}<br>
-     <strong>Local de retirada:</strong> {{ pedido.local_retirada|default:"—" }}</p>
-  <p style="font-size:.8rem;color:#666">Documento gerado pelo CRM da Atlética para controle interno.</p>
+  <p class="rodape">Documento gerado pelo CRM da {{ cfg.nome_organizacao|default:"Atlética Gorilada FGV" }} para controle interno.</p>
 </body>
 </html>

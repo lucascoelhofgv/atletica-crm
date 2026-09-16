@@ -1,13 +1,14 @@
 {% extends "contas/base_publico.html" %}
-{% load widget_tweaks %}
 {% block titulo %}Recuperar senha{% endblock %}
 {% block conteudo %}
 <h1>Recuperar senha</h1>
-<p class="text-muted small">Informe seu e-mail. Enviaremos um link para redefinir a senha.</p>
+<p>Informe seu e-mail. Enviaremos um link para redefinir a senha.</p>
 <form method="post">
   {% csrf_token %}
-  <div class="mb-3">{% render_field form.email class="form-control" placeholder="seu@email" %}</div>
-  <button class="btn btn-primary w-100" style="background:var(--cor-primaria);border:0">Enviar link</button>
-  <div class="text-center mt-3"><a href="{% url 'contas:login' %}" class="small">Voltar para o login</a></div>
+  <label for="{{ form.email.id_for_label }}">E-mail</label>
+  {{ form.email }}
+  {% if form.errors %}<div class="erros">{{ form.email.errors }}</div>{% endif %}
+  <button class="botao botao-primario">Enviar link</button>
+  <a href="/login" class="voltar">Voltar para o login</a>
 </form>
 {% endblock %}

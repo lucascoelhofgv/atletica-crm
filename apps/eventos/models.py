@@ -14,7 +14,6 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 
@@ -97,7 +96,7 @@ class Evento(models.Model):
         return self.nome
 
     def get_absolute_url(self):
-        return reverse("eventos:detalhe", args=[self.pk])
+        return f"/eventos/{self.pk}"  # tela do SPA
 
     @property
     def eh_festa(self):

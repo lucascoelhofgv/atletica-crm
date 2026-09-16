@@ -2,14 +2,18 @@
 # Ao criar o Blueprint, deixe o campo "Blueprint Path" VAZIO — este arquivo já
 # está na raiz do repositório, que é onde o Render procura por padrão.
 # O plano free "dorme" após ~15 min sem acesso (cold start de ~50 s).
+#
+# Deploy via Docker: o Dockerfile compila o frontend (Node) e sobe o Django,
+# que serve API + SPA no mesmo domínio. Migrações rodam no start
+# (docker/entrypoint.sh).
 services:
   - type: web
     name: atletica-crm
-    runtime: python
+    runtime: docker
     plan: free
     branch: main
-    buildCommand: "bash build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/saude/
     envVars:
       - key: SECRET_KEY
         generateValue: true          # o Render gera uma chave forte sozinho
@@ -19,5 +23,5 @@ services:
         value: ".onrender.com"
       - key: DATABASE_URL
         sync: false                  # você cola a string do Supabase no painel
-      - key: PYTHON_VERSION
-        value: "3.12.6"
+      - key: WEB_CONCURRENCY
+        value: "2"

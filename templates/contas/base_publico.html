@@ -4,26 +4,59 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block titulo %}Entrar{% endblock %} — {{ cfg.titulo_app|default:"CRM Atlética" }}</title>
-  {% if cfg.favicon %}<link rel="icon" href="{{ cfg.favicon.url }}">{% endif %}
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="{% static 'css/app.css' %}" rel="stylesheet">
+  <title>{% block titulo %}Entrar{% endblock %} · {{ cfg.titulo_app|default:"CRM Atlética Gorilada" }}</title>
+  <link rel="icon" href="{% if cfg.favicon %}{{ cfg.favicon.url }}{% else %}{% static 'app/marca/logo-64.png' %}{% endif %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=League+Spartan:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body{display:flex;align-items:center;justify-content:center;min-height:100vh;
-      background:linear-gradient(135deg,{{ cfg.cor_primaria|default:"#1B2A4A" }},#0f1830)}
-    .card-login{background:#fff;border-radius:16px;padding:2.2rem;width:100%;max-width:400px;box-shadow:0 20px 50px rgba(0,0,0,.25)}
-    .card-login h1{font-size:1.25rem;margin-bottom:.3rem;color:var(--cor-primaria)}
-    .card-login .marca{font-weight:700;color:var(--cor-primaria);margin-bottom:1.2rem;display:flex;gap:.5rem;align-items:center}
+    /* Páginas públicas (reset de senha). Mesmos tokens do frontend React. */
+    :root{
+      --royal:{{ cfg.cor_primaria|default:"#182A76" }};
+      --amarelo:{{ cfg.cor_secundaria|default:"#FFE104" }};
+      --navy:#000638;
+      --tinta:#0b1020; --tinta-fraca:#5b6480; --borda:#d9dce8; --erro:#b42318;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;color:var(--tinta);
+      background:radial-gradient(1200px 600px at 20% -10%,rgba(255,225,4,.18),transparent 60%),
+                 linear-gradient(135deg,var(--royal),var(--navy))}
+    .cartao{background:#fff;border-radius:18px;padding:2.2rem;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,6,56,.45)}
+    .marca{display:flex;align-items:center;gap:.65rem;margin-bottom:1.4rem;font-family:"League Spartan",sans-serif;
+      font-weight:700;font-size:1.15rem;letter-spacing:.01em;color:var(--royal)}
+    .marca img{height:38px;width:auto}
+    h1{font-family:"League Spartan",sans-serif;font-size:1.55rem;line-height:1.1;margin:0 0 .35rem;color:var(--navy)}
+    p{margin:0 0 1.1rem;color:var(--tinta-fraca);font-size:.93rem;line-height:1.45}
+    label{display:block;font-size:.85rem;font-weight:500;margin:.9rem 0 .35rem}
+    input[type=text],input[type=email],input[type=password]{width:100%;padding:.7rem .85rem;border:1px solid var(--borda);
+      border-radius:10px;font:inherit;font-size:.95rem;background:#fff;color:var(--tinta);outline:none;
+      transition:border-color .15s,box-shadow .15s}
+    input:focus{border-color:var(--royal);box-shadow:0 0 0 3px rgba(24,42,118,.18)}
+    .ajuda{font-size:.78rem;color:var(--tinta-fraca);margin-top:.35rem}
+    .ajuda ul{margin:.2rem 0 0;padding-left:1.1rem}
+    .botao{display:block;width:100%;text-align:center;margin-top:1.2rem;padding:.75rem 1rem;border:0;border-radius:10px;
+      font:inherit;font-weight:600;font-size:.95rem;cursor:pointer;text-decoration:none;transition:filter .15s}
+    .botao:hover{filter:brightness(1.05)}
+    .botao-primario{background:var(--amarelo);color:var(--navy)}
+    .botao-secundario{background:#eef0f7;color:var(--royal)}
+    .voltar{display:block;text-align:center;margin-top:1.1rem;font-size:.85rem;color:var(--royal)}
+    .alerta{padding:.7rem .85rem;border-radius:10px;font-size:.88rem;margin-bottom:1rem;background:#fff4e5;color:#7a4b00}
+    .alerta-error,.alerta-danger{background:#fde8e6;color:var(--erro)}
+    .alerta-success{background:#e6f6ec;color:#1b6b3a}
+    .erros{color:var(--erro);font-size:.85rem;margin:.6rem 0 0}
+    .erros ul{margin:.2rem 0 0;padding-left:1.1rem}
+    .erros .errorlist{list-style:none;padding:0;margin:0}
   </style>
 </head>
 <body>
-  <div class="card-login">
+  <main class="cartao">
     <div class="marca">
-      {% if cfg.logo %}<img src="{{ cfg.logo.url }}" style="height:34px">{% endif %}
-      {{ cfg.nome_organizacao|default:"Atlética FGV Rio" }}
+      <img src="{% if cfg.logo %}{{ cfg.logo.url }}{% else %}{% static 'app/marca/logo-64.png' %}{% endif %}" alt="">
+      <span>{{ cfg.nome_organizacao|default:"Atlética Gorilada FGV" }}</span>
     </div>
-    {% if messages %}{% for m in messages %}<div class="alert alert-{{ m.tags }}">{{ m }}</div>{% endfor %}{% endif %}
+    {% if messages %}{% for m in messages %}<div class="alerta alerta-{{ m.tags }}">{{ m }}</div>{% endfor %}{% endif %}
     {% block conteudo %}{% endblock %}
-  </div>
+  </main>
 </body>
 </html>

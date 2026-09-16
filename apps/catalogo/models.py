@@ -9,7 +9,6 @@ from decimal import Decimal
 
 from django.conf import settings
 from django.db import models
-from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
 
@@ -90,7 +89,7 @@ class Produto(models.Model):
         return " · ".join(partes)
 
     def get_absolute_url(self):
-        return reverse("catalogo:produto_detalhe", args=[self.pk])
+        return f"/produtos/{self.pk}"  # tela do SPA
 
     @property
     def margem_estimada(self):

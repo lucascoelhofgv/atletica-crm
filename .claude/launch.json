@@ -3,9 +3,16 @@
   "configurations": [
     {
       "name": "crm",
-      "runtimeExecutable": ".venv\\Scripts\\python.exe",
+      "runtimeExecutable": ".venv\Scripts\python.exe",
       "runtimeArgs": ["manage.py", "runserver", "127.0.0.1:8010"],
       "port": 8010
+    },
+    {
+      "name": "web",
+      "cwd": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173
     }
   ]
 }

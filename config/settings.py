@@ -48,7 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.humanize",
     # Terceiros
     "simple_history",
-    "widget_tweaks",
+    "rest_framework",
+    "django_filters",
     # Apps do projeto
     "apps.contas",
     "apps.nucleo",
@@ -59,6 +60,7 @@ INSTALLED_APPS = [
     "apps.tarefas",
     "apps.eventos",
     "apps.relatorios",
+    "apps.api",
 ]
 
 MIDDLEWARE = [
@@ -117,9 +119,9 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LOGIN_URL = "contas:login"
-LOGIN_REDIRECT_URL = "nucleo:dashboard"
-LOGOUT_REDIRECT_URL = "contas:login"
+LOGIN_URL = "/login"          # tela do SPA
+LOGIN_REDIRECT_URL = "/"
+LOGOUT_REDIRECT_URL = "/login"
 
 # --------------------------------------------------------------------------- #
 # Internacionalização — português do Brasil
@@ -133,8 +135,14 @@ USE_TZ = True
 # Arquivos estáticos e de mídia
 # --------------------------------------------------------------------------- #
 STATIC_URL = "static/"
-STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_DIRS = [BASE_DIR / "static"]
+
+# Build do frontend React (Vite). Entra com o prefixo "app": os assets ficam em
+# /static/app/assets/... e o index.html é entregue por apps.api.views_spa.
+_frontend_dist = BASE_DIR / "frontend" / "dist"
+if _frontend_dist.is_dir():
+    STATICFILES_DIRS.append(("app", _frontend_dist))
 
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
@@ -145,6 +153,13 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"
     },
 }
+
+# WhiteNoise + assets já hasheados pelo Vite: não falhar por referência
+# ausente no manifest e marcar os nomes do Vite como imutáveis (cache longo).
+from apps.api.static import eh_imutavel  # noqa: E402  (módulo sem dependências)
+
+WHITENOISE_MANIFEST_STRICT = False
+WHITENOISE_IMMUTABLE_FILE_TEST = eh_imutavel
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -157,18 +172,49 @@ FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024
 # --------------------------------------------------------------------------- #
 if not DEBUG:
     SECURE_SSL_REDIRECT = env.bool("SECURE_SSL_REDIRECT", default=True)
+    # O health check do Render chega por HTTP e não pode receber 301.
+    SECURE_REDIRECT_EXEMPT = [r"^api/saude/$"]
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
+    # COOKIES_SECURE=False só para testar a imagem Docker em http://localhost.
+    SESSION_COOKIE_SECURE = env.bool("COOKIES_SECURE", default=True)
+    CSRF_COOKIE_SECURE = env.bool("COOKIES_SECURE", default=True)
     SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
 
 SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # o frontend lê o cookie para mandar X-CSRFToken
 X_FRAME_OPTIONS = "DENY"
 SESSION_COOKIE_AGE = 60 * 60 * 12  # 12 horas
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# --------------------------------------------------------------------------- #
+# API (Django REST Framework) consumida pelo frontend React em frontend/
+# --------------------------------------------------------------------------- #
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.SessionAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
+    "DEFAULT_PAGINATION_CLASS": "apps.api.pagination.PaginacaoPadrao",
+    "PAGE_SIZE": 30,
+    "DEFAULT_FILTER_BACKENDS": [
+        "django_filters.rest_framework.DjangoFilterBackend",
+        "rest_framework.filters.SearchFilter",
+        "rest_framework.filters.OrderingFilter",
+    ],
+    "SEARCH_PARAM": "q",
+    "ORDERING_PARAM": "ordenar",
+    "EXCEPTION_HANDLER": "apps.api.exceptions.tratar",
+    "DEFAULT_RENDERER_CLASSES": (
+        ["rest_framework.renderers.JSONRenderer"]
+        + (["rest_framework.renderers.BrowsableAPIRenderer"] if DEBUG else [])
+    ),
+    "COERCE_DECIMAL_TO_STRING": False,
+    "DATE_FORMAT": "%Y-%m-%d",
+    "DATETIME_FORMAT": "iso-8601",
+}
 
 # --------------------------------------------------------------------------- #
 # E-mail (recuperação de senha). Em dev imprime no console.

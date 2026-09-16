@@ -18,9 +18,24 @@ plano free). O plano free do Render "dorme" após ~15 min sem acesso e leva
 
 ## 2. Aplicação no Render
 
-1. Suba o código para um repositório no GitHub.
+O deploy é por **Docker** (`Dockerfile` na raiz): o estágio 1 compila o frontend
+React (`frontend/`) com Node e o estágio 2 sobe o Django com gunicorn, servindo a
+API e o frontend no mesmo domínio via WhiteNoise. As migrações, o `seed_inicial` e
+o `bootstrap_admin` rodam no start do container (`docker/entrypoint.sh`).
+
+Para testar a imagem localmente antes de publicar:
+```bash
+docker build -t atletica-crm .
+docker run --rm -p 8000:8000 -e DEBUG=False -e COOKIES_SECURE=False \
+  -e SECURE_SSL_REDIRECT=False -e ALLOWED_HOSTS=localhost -e SECRET_KEY=teste atletica-crm
+# abra http://localhost:8000/
+```
+
+1. Suba o código para um repositório no GitHub. O `render.yaml` aponta para a
+   branch `main`; ajuste se for publicar outra.
 2. Em https://render.com → **New → Blueprint**, conecte o repositório. O Render
-   lê o `render.yaml` e cria o serviço `crm-atletica`.
+   lê o `render.yaml` (runtime `docker`, health check em `/api/saude/`) e cria o
+   serviço `atletica-crm`.
 3. Configure as variáveis de ambiente (algumas já vêm do `render.yaml`):
 
    | Variável | Valor |
@@ -32,9 +47,11 @@ plano free). O plano free do Render "dorme" após ~15 min sem acesso e leva
    | `DATABASE_URL` | a string do Supabase (passo 1) |
    | `EMAIL_*` | opcional, para recuperação de senha por e-mail |
 
-4. O **Build Command** (`./build.sh`) roda `collectstatic` e `migrate`
-   automaticamente a cada deploy.
-5. Após o primeiro deploy, abra o **Shell** do Render e rode:
+4. Cada deploy reconstrói a imagem (frontend + backend) e roda as migrações
+   no start. `build.sh` só é usado por quem publica no runtime Python nativo
+   (precisa de Node no ambiente para compilar o frontend).
+5. Defina `ADMIN_USERNAME` e `ADMIN_PASSWORD` no painel para o `bootstrap_admin`
+   criar o administrador sem shell. Alternativa, se houver shell:
    ```bash
    python manage.py seed_inicial
    python manage.py createsuperuser
