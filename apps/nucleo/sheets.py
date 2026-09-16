@@ -138,10 +138,34 @@ def _texto(valor):
     return str(valor)
 
 
+def extrair_gid_planilha(valor):
+    """Se `valor` for uma URL com '#gid=123' ou '?gid=123', devolve o gid (int).
+    Uma URL colada do navegador aponta pra uma aba específica — sem isso a
+    gente sempre cairia na primeira aba da planilha."""
+    import re
+
+    m = re.search(r"[?#&]gid=(\d+)", str(valor or ""))
+    return int(m.group(1)) if m else None
+
+
 def listar_abas(sheet_id):
     """Nomes das abas de uma planilha de origem."""
     planilha = abrir_planilha(sheet_id=sheet_id)
     return [w.title for w in planilha.worksheets()]
+
+
+def _abrir_aba(planilha, aba, sheet_id_original):
+    """Resolve a aba: pelo nome (se informado), senão pelo gid embutido na
+    URL colada, senão a primeira aba da planilha."""
+    if aba:
+        return planilha.worksheet(aba)
+    gid = extrair_gid_planilha(sheet_id_original)
+    if gid is not None:
+        try:
+            return planilha.get_worksheet_by_id(gid)
+        except Exception:
+            pass
+    return planilha.sheet1
 
 
 def ler_grade(sheet_id, aba=None):
@@ -149,7 +173,7 @@ def ler_grade(sheet_id, aba=None):
     pelos importadores que precisam ler blocos soltos (não uma tabela simples
     com cabeçalho único) — ex.: planilhas de festa Jungle/FRAT HOUSE."""
     planilha = abrir_planilha(sheet_id=sheet_id)
-    ws = planilha.worksheet(aba) if aba else planilha.sheet1
+    ws = _abrir_aba(planilha, aba, sheet_id)
     return ws.get_all_values()
 
 
@@ -160,7 +184,7 @@ def ler_aba(sheet_id, aba=None):
     ``{coluna: valor}``. Linhas totalmente vazias são ignoradas.
     """
     planilha = abrir_planilha(sheet_id=sheet_id)
-    ws = planilha.worksheet(aba) if aba else planilha.sheet1
+    ws = _abrir_aba(planilha, aba, sheet_id)
     matriz = ws.get_all_values()
     if not matriz:
         return [], []
