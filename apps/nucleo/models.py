@@ -111,6 +111,67 @@ class LogAcesso(models.Model):
         return f"{self.usuario} — {self.momento:%d/%m/%Y %H:%M} ({estado})"
 
 
+class FontePlanilha(models.Model):
+    """Planilha do Google que alimenta o CRM.
+
+    Substitui a lista fixa ``PLANILHAS_SUGERIDAS`` do código: planilha nova
+    entra pelo cadastro, sem alteração no sistema. O comando
+    ``importar_planilhas`` percorre as fontes ativas e guarda aqui o resultado
+    de cada execução.
+    """
+
+    class Destino(models.TextChoices):
+        CLIENTES = "clientes", "Clientes"
+        FORNECEDORES = "fornecedores", "Fornecedores / Parceiros"
+        CONTROLE_PRODUTOS = "controle_produtos", "Controle de Produtos"
+
+    class Modo(models.TextChoices):
+        CRIAR_ATUALIZAR = "criar_atualizar", "Criar e completar os que já existem"
+        SOMENTE_CRIAR = "somente_criar", "Somente criar novos"
+
+    nome = models.CharField("nome", max_length=120)
+    planilha = models.CharField(
+        "planilha (URL ou ID)",
+        max_length=255,
+        help_text="Cole a URL do Google Sheets. O ID e a aba saem dela.",
+    )
+    aba = models.CharField(
+        "aba",
+        max_length=120,
+        blank=True,
+        help_text="Em branco usa a aba indicada na URL colada, ou a primeira.",
+    )
+    destino = models.CharField("importar como", max_length=30, choices=Destino.choices)
+    modo = models.CharField(
+        "modo", max_length=20, choices=Modo.choices, default=Modo.CRIAR_ATUALIZAR
+    )
+    ativa = models.BooleanField("sincronizar automaticamente", default=True)
+
+    ultima_sincronizacao = models.DateTimeField(
+        "última sincronização", null=True, blank=True
+    )
+    ultimo_resultado = models.CharField("último resultado", max_length=255, blank=True)
+    ultimo_erro = models.CharField("último erro", max_length=255, blank=True)
+
+    criado_em = models.DateTimeField("cadastrada em", auto_now_add=True)
+    criado_por = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="fontes_planilha",
+        verbose_name="cadastrada por",
+    )
+
+    class Meta:
+        verbose_name = "fonte de planilha"
+        verbose_name_plural = "fontes de planilha"
+        ordering = ["nome"]
+
+    def __str__(self):
+        return self.nome
+
+
 def registrar_atividade(usuario, verbo, alvo="", descricao="", url=""):
     """Atalho para gravar uma linha em RegistroAtividade sem quebrar a request
     caso algo dê errado."""

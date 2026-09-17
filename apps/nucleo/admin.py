@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Configuracao, LogAcesso, RegistroAtividade
+from .models import Configuracao, FontePlanilha, LogAcesso, RegistroAtividade
 
 
 @admin.register(Configuracao)
@@ -12,6 +12,15 @@ class ConfiguracaoAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
+
+
+@admin.register(FontePlanilha)
+class FontePlanilhaAdmin(admin.ModelAdmin):
+    list_display = ("nome", "destino", "ativa", "ultima_sincronizacao", "ultimo_erro")
+    list_filter = ("destino", "ativa")
+    search_fields = ("nome", "planilha")
+    readonly_fields = ("ultima_sincronizacao", "ultimo_resultado", "ultimo_erro",
+                       "criado_em", "criado_por")
 
 
 @admin.register(RegistroAtividade)

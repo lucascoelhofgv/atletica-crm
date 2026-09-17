@@ -15,3 +15,13 @@ EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 # WhiteNoise sem STATIC_ROOT coletado nos testes
 WHITENOISE_AUTOREFRESH = True
+
+# Sem manifesto de estáticos nos testes: o armazenamento com manifesto exige
+# collectstatic (e o build do Vite em frontend/dist) só para renderizar um
+# template. Com o storage simples, o teste roda em qualquer máquina.
+STORAGES = {
+    **STORAGES,  # noqa: F405
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"
+    },
+}
