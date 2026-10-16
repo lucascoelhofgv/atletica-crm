@@ -48,6 +48,9 @@
   --chart-3: oklch(0.6 0.15 160);
   --chart-4: oklch(0.62 0.2 25);
   --chart-5: oklch(0.55 0.15 300);
+  /* Esportes: técnico x quadra no gráfico empilhado (validado p/ daltonismo). */
+  --esportes-tecnico: var(--chart-1);
+  --esportes-quadra: var(--chart-2);
   --sidebar: oklch(0.3 0.12 267);
   --sidebar-foreground: oklch(0.97 0.01 260);
   --sidebar-primary: oklch(0.907 0.188 99.4);
@@ -86,6 +89,9 @@
   --chart-3: oklch(0.75 0.15 160);
   --chart-4: oklch(0.72 0.18 25);
   --chart-5: oklch(0.75 0.12 300);
+  /* No escuro os tons de --chart saem claros demais para barra cheia. */
+  --esportes-tecnico: oklch(0.62 0.15 268);
+  --esportes-quadra: oklch(0.66 0.14 85);
   --sidebar: oklch(0.15 0.055 265);
   --sidebar-foreground: oklch(0.93 0.01 260);
   --sidebar-primary: oklch(0.907 0.188 99.4);

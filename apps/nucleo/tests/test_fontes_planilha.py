@@ -113,3 +113,21 @@ def test_uma_fonte_quebrada_nao_impede_as_outras(monkeypatch):
     assert boa.ultima_sincronizacao is not None
     assert "não compartilhada" in ruim.ultimo_erro
     assert ruim.ultima_sincronizacao is None
+
+
+def test_erros_do_controle_de_produtos_viram_avisos(monkeypatch):
+    from apps.nucleo.services import integracoes
+
+    def _importar(planilha, usuario=None):
+        return {
+            "produtos": {"criados": 2, "erros": []},
+            "vendas": {"criados": 1, "erros": ["Venda VD09: produto 'Boné' não encontrado."]},
+        }
+
+    monkeypatch.setattr(integracoes, "importar_controle_produtos", _importar)
+    fonte = criar_fonte(destino=FontePlanilha.Destino.CONTROLE_PRODUTOS)
+
+    resultado = integracoes.sincronizar_fonte(fonte)
+
+    assert resultado["avisos"] == ["vendas: Venda VD09: produto 'Boné' não encontrado."]
+    assert "1 aviso(s)" in resultado["resumo"]

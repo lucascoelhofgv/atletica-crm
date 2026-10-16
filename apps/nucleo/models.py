@@ -124,6 +124,8 @@ class FontePlanilha(models.Model):
         CLIENTES = "clientes", "Clientes"
         FORNECEDORES = "fornecedores", "Fornecedores / Parceiros"
         CONTROLE_PRODUTOS = "controle_produtos", "Controle de Produtos"
+        ESPORTES_ORCAMENTO = "esportes_orcamento", "Esportes: orçamento"
+        ESPORTES_TREINOS = "esportes_treinos", "Esportes: treinos e jogos"
 
     class Modo(models.TextChoices):
         CRIAR_ATUALIZAR = "criar_atualizar", "Criar e completar os que já existem"
@@ -133,7 +135,7 @@ class FontePlanilha(models.Model):
     planilha = models.CharField(
         "planilha (URL ou ID)",
         max_length=255,
-        help_text="Cole a URL do Google Sheets. O ID e a aba saem dela.",
+        help_text="Cole a URL do Google Sheets ou do .xlsx no Drive. O ID e a aba saem dela.",
     )
     aba = models.CharField(
         "aba",

@@ -86,3 +86,7 @@ class LogAcessoViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 def registrar(router):
     router.register("atividades", AtividadeViewSet, basename="atividade")
     router.register("acessos", LogAcessoViewSet, basename="acesso")
+
+    from .api_integracoes import FontePlanilhaViewSet
+
+    router.register("integracoes/fontes", FontePlanilhaViewSet, basename="fonte-planilha")

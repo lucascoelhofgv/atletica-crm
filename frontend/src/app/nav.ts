@@ -10,8 +10,10 @@ import {
   KeyRound,
   LayoutDashboard,
   Palette,
+  RefreshCw,
   Receipt,
   Shield,
+  Trophy,
   Truck,
   UserCog,
   Users,
@@ -41,6 +43,7 @@ export const NAV_PRINCIPAL: ItemNav[] = [
   { rotulo: "Fornecedores", icone: Truck, rota: "/fornecedores", modulo: "fornecedores" },
   { rotulo: "Tarefas", icone: CheckSquare, rota: "/tarefas", modulo: "tarefas" },
   { rotulo: "Eventos e festas", icone: CalendarDays, rota: "/eventos", modulo: "eventos" },
+  { rotulo: "Esportes", icone: Trophy, rota: "/esportes", modulo: "esportes" },
   { rotulo: "Relatórios", icone: BarChart3, rota: "/relatorios", modulo: "relatorios" },
 ];
 
@@ -51,6 +54,7 @@ export const NAV_ADMIN: ItemNav[] = [
   { rotulo: "Acessos", icone: KeyRound, rota: "/administracao/acessos", somenteAdmin: true },
   { rotulo: "Google Sheets", icone: FileSpreadsheet, rota: "/administracao/sheets", somenteAdmin: true },
   { rotulo: "Importar de planilha", icone: Import, rota: "/administracao/importar", somenteAdmin: true },
+  { rotulo: "Fontes de planilha", icone: RefreshCw, rota: "/administracao/fontes", somenteAdmin: true },
   { rotulo: "Admin avançado", icone: Wrench, externo: "/admin/", somenteAdmin: true },
 ];
 

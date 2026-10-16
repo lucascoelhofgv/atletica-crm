@@ -13,7 +13,6 @@ Precisa da credencial do Google (ver apps/nucleo/sheets.py).
 """
 
 from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
 
 from apps.nucleo.models import FontePlanilha
 from apps.nucleo.services import integracoes
@@ -63,49 +62,12 @@ class Command(BaseCommand):
     def _processar(self, fonte, simular):
         rotulo = f"{fonte.nome} [{fonte.get_destino_display()}]"
         try:
-            resumo = self._executar(fonte, simular)
+            resultado = integracoes.sincronizar_fonte(fonte, simular=simular)
         except Exception as exc:
             self.stderr.write(self.style.ERROR(f"  {rotulo}: {exc}"))
-            if not simular:
-                fonte.ultimo_erro = str(exc)[:255]
-                fonte.save(update_fields=["ultimo_erro"])
             return False
 
-        self.stdout.write(self.style.SUCCESS(f"  {rotulo}: {resumo}"))
-        if not simular:
-            fonte.ultima_sincronizacao = timezone.now()
-            fonte.ultimo_resultado = resumo[:255]
-            fonte.ultimo_erro = ""
-            fonte.save(
-                update_fields=["ultima_sincronizacao", "ultimo_resultado", "ultimo_erro"]
-            )
+        self.stdout.write(self.style.SUCCESS(f"  {rotulo}: {resultado['resumo']}"))
+        for aviso in resultado["avisos"]:
+            self.stdout.write(f"    aviso: {aviso}")
         return True
-
-    def _executar(self, fonte, simular) -> str:
-        """Chama o importador do destino e devolve uma linha de resumo."""
-        if fonte.destino == FontePlanilha.Destino.CONTROLE_PRODUTOS:
-            if simular:
-                p = integracoes.previa_controle_produtos(fonte.planilha)
-                return (
-                    f"{p['produtos']} produto(s), {p['compras_recebidas']} de "
-                    f"{p['compras_total']} compra(s) recebida(s), {p['vendas']} venda(s)"
-                )
-            r = integracoes.importar_controle_produtos(fonte.planilha, usuario=None)
-            return ", ".join(
-                f"{aba} {dados['criados']} novo(s)" for aba, dados in r.items()
-            )
-
-        if simular:
-            p = integracoes.previa_importacao(fonte.planilha, fonte.aba, fonte.destino)
-            return f"{p['total_linhas']} linha(s) em {len(p['cabecalho'])} coluna(s)"
-
-        r = integracoes.importar(
-            fonte.planilha, fonte.aba, fonte.destino, fonte.modo, usuario=None
-        )
-        resumo = (
-            f"{r['criados']} criado(s), {r['atualizados']} atualizado(s), "
-            f"{r['ignorados']} ignorado(s)"
-        )
-        if r.get("erros"):
-            resumo += f", {len(r['erros'])} erro(s)"
-        return resumo

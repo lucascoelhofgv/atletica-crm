@@ -108,6 +108,10 @@ def abrir_planilha(cliente_gs=None, sheet_id=None):
         ) from exc
     except gspread.exceptions.APIError as exc:
         codigo = getattr(getattr(exc, "response", None), "status_code", "?")
+        if codigo == 400 and "office file" in str(exc).lower():
+            # Excel guardado no Drive sem converter: a API do Sheets não abre,
+            # então baixamos o arquivo e lemos com openpyxl.
+            return abrir_excel(sid)
         if codigo == 404:
             raise SheetsIndisponivel(
                 f"Planilha não encontrada / sem acesso (ID '{sid}'). Confira o "
@@ -120,6 +124,143 @@ def abrir_planilha(cliente_gs=None, sheet_id=None):
                 "API no projeto do Google Cloud e confirme o compartilhamento."
             ) from exc
         raise SheetsIndisponivel(f"Erro da API do Google Sheets: {exc}") from exc
+
+
+# --------------------------------------------------------------------------- #
+# Planilhas Excel (.xlsx) guardadas no Drive
+# --------------------------------------------------------------------------- #
+# Muita planilha da diretoria é um .xlsx que alguém subiu no Drive e continua
+# editando por lá, sem "Salvar como Planilhas Google". O gspread recusa esses
+# arquivos ("must not be an Office file"). Converter cria um arquivo novo, com
+# outro ID, e a diretoria seguiria editando o antigo. Por isso o CRM lê o .xlsx
+# como ele está: baixa pela API do Drive e entrega a mesma grade de texto que
+# o gspread entregaria, para os importadores não precisarem saber a diferença.
+
+
+def _texto_celula(valor):
+    """Formata como o Google Sheets mostra em pt-BR, que é o que os
+    importadores já sabem ler: vírgula decimal, data dd/mm/aaaa."""
+    import datetime as dt
+
+    if valor is None:
+        return ""
+    if isinstance(valor, bool):
+        return "TRUE" if valor else "FALSE"
+    if isinstance(valor, dt.datetime):
+        if valor.time() == dt.time(0, 0):
+            return valor.strftime("%d/%m/%Y")
+        return valor.strftime("%d/%m/%Y %H:%M")
+    if isinstance(valor, dt.date):
+        return valor.strftime("%d/%m/%Y")
+    if isinstance(valor, dt.time):
+        return valor.strftime("%H:%M")
+    if isinstance(valor, float):
+        if valor == int(valor):
+            return str(int(valor))
+        return repr(round(valor, 10)).replace(".", ",")
+    return str(valor)
+
+
+class AbaExcel:
+    """Uma aba do .xlsx com a mesma interface que o gspread usa aqui."""
+
+    def __init__(self, ws, indice):
+        self._ws = ws
+        self.title = ws.title
+        self.id = indice
+        self.oculta = ws.sheet_state != "visible"
+
+    def get_all_values(self):
+        linhas = [
+            [_texto_celula(v) for v in linha]
+            for linha in self._ws.iter_rows(values_only=True)
+        ]
+        # Igual ao Google: sem linhas vazias no fim e com todas as linhas da
+        # mesma largura (a da coluna mais à direita que tem valor).
+        while linhas and not any(linhas[-1]):
+            linhas.pop()
+        largura = max(
+            (max((j + 1 for j, v in enumerate(l) if v), default=0) for l in linhas),
+            default=0,
+        )
+        return [(l + [""] * largura)[:largura] for l in linhas]
+
+
+class PlanilhaExcel:
+    def __init__(self, livro, titulo=""):
+        self.title = titulo
+        self._abas = [AbaExcel(ws, i) for i, ws in enumerate(livro.worksheets)]
+
+    def worksheets(self):
+        return list(self._abas)
+
+    def worksheet(self, titulo):
+        import gspread
+
+        for aba in self._abas:
+            if aba.title == titulo:
+                return aba
+        # Tolera diferença de maiúsculas e espaços, comum em nome de aba.
+        alvo = titulo.strip().lower()
+        for aba in self._abas:
+            if aba.title.strip().lower() == alvo:
+                return aba
+        raise gspread.exceptions.WorksheetNotFound(titulo)
+
+    def get_worksheet_by_id(self, gid):
+        # .xlsx não tem gid: quem chama cai na primeira aba.
+        import gspread
+
+        raise gspread.exceptions.WorksheetNotFound(str(gid))
+
+    @property
+    def sheet1(self):
+        return self._abas[0]
+
+
+def baixar_arquivo_drive(sid) -> bytes:
+    """Conteúdo bruto de um arquivo do Drive, com a mesma credencial."""
+    from google.auth.transport.requests import AuthorizedSession
+
+    sessao = AuthorizedSession(_credenciais())
+    resp = sessao.get(
+        f"https://www.googleapis.com/drive/v3/files/{sid}",
+        params={"alt": "media", "supportsAllDrives": "true"},
+        timeout=60,
+    )
+    if resp.status_code in (403, 404):
+        raise SheetsIndisponivel(
+            f"Não consegui baixar o arquivo '{sid}' do Drive ({resp.status_code}). "
+            "Confira se ele foi compartilhado com o e-mail da service account."
+        )
+    if resp.status_code != 200:
+        raise SheetsIndisponivel(
+            f"O Drive respondeu {resp.status_code} ao baixar o arquivo '{sid}'."
+        )
+    return resp.content
+
+
+def abrir_excel(sid, conteudo: bytes | None = None):
+    """Abre um .xlsx do Drive (ou os bytes dados) como PlanilhaExcel."""
+    import io
+
+    try:
+        import openpyxl
+    except ImportError as exc:  # pragma: no cover
+        raise SheetsIndisponivel(
+            "Pacote openpyxl não instalado. Rode: pip install -r requirements.txt"
+        ) from exc
+
+    if conteudo is None:
+        conteudo = baixar_arquivo_drive(sid)
+    try:
+        # data_only: o valor calculado da fórmula, não o texto "=SOMA(...)".
+        livro = openpyxl.load_workbook(io.BytesIO(conteudo), data_only=True)
+    except Exception as exc:
+        raise SheetsIndisponivel(
+            f"O arquivo '{sid}' não é uma planilha Excel que eu consiga abrir."
+        ) from exc
+    return PlanilhaExcel(livro, titulo=sid)
 
 
 def _escrever_aba(planilha, titulo, cabecalho, linhas):
@@ -175,6 +316,21 @@ def ler_grade(sheet_id, aba=None):
     planilha = abrir_planilha(sheet_id=sheet_id)
     ws = _abrir_aba(planilha, aba, sheet_id)
     return ws.get_all_values()
+
+
+def ler_abas(sheet_id, incluir_ocultas=False):
+    """``{nome da aba: grade}`` de todas as abas, abrindo a planilha uma vez só.
+    Abas ocultas costumam ser versão antiga ou rascunho e ficam de fora."""
+    planilha = abrir_planilha(sheet_id=sheet_id)
+    grades = {}
+    for ws in planilha.worksheets():
+        oculta = getattr(ws, "oculta", None)
+        if oculta is None:
+            oculta = bool(getattr(ws, "isSheetHidden", False))
+        if oculta and not incluir_ocultas:
+            continue
+        grades[ws.title] = ws.get_all_values()
+    return grades
 
 
 def ler_aba(sheet_id, aba=None):

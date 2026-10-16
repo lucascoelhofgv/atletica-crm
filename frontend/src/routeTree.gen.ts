@@ -15,12 +15,14 @@ import { Route as AuthIndexRouteImport } from './routes/_auth/index'
 import { Route as AuthContaRouteImport } from './routes/_auth/conta'
 import { Route as AuthAdministracaoAcessosRouteImport } from './routes/_auth/administracao/acessos'
 import { Route as AuthAdministracaoConfiguracaoRouteImport } from './routes/_auth/administracao/configuracao'
+import { Route as AuthAdministracaoFontesRouteImport } from './routes/_auth/administracao/fontes'
 import { Route as AuthAdministracaoHistoricoRouteImport } from './routes/_auth/administracao/historico'
 import { Route as AuthAdministracaoImportarRouteImport } from './routes/_auth/administracao/importar'
 import { Route as AuthAdministracaoMembrosRouteImport } from './routes/_auth/administracao/membros'
 import { Route as AuthAdministracaoSheetsRouteImport } from './routes/_auth/administracao/sheets'
 import { Route as AuthClientesIndexRouteImport } from './routes/_auth/clientes/index'
 import { Route as AuthClientesNovoRouteImport } from './routes/_auth/clientes/novo'
+import { Route as AuthEsportesIndexRouteImport } from './routes/_auth/esportes/index'
 import { Route as AuthEventosIndexRouteImport } from './routes/_auth/eventos/index'
 import { Route as AuthEventosNovoRouteImport } from './routes/_auth/eventos/novo'
 import { Route as AuthFornecedoresIndexRouteImport } from './routes/_auth/fornecedores/index'
@@ -82,6 +84,11 @@ const AuthAdministracaoConfiguracaoRoute =
     path: '/administracao/configuracao',
     getParentRoute: () => AuthRoute,
   } as any)
+const AuthAdministracaoFontesRoute = AuthAdministracaoFontesRouteImport.update({
+  id: '/administracao/fontes',
+  path: '/administracao/fontes',
+  getParentRoute: () => AuthRoute,
+} as any)
 const AuthAdministracaoHistoricoRoute =
   AuthAdministracaoHistoricoRouteImport.update({
     id: '/administracao/historico',
@@ -113,6 +120,11 @@ const AuthClientesIndexRoute = AuthClientesIndexRouteImport.update({
 const AuthClientesNovoRoute = AuthClientesNovoRouteImport.update({
   id: '/clientes/novo',
   path: '/clientes/novo',
+  getParentRoute: () => AuthRoute,
+} as any)
+const AuthEsportesIndexRoute = AuthEsportesIndexRouteImport.update({
+  id: '/esportes/',
+  path: '/esportes/',
   getParentRoute: () => AuthRoute,
 } as any)
 const AuthEventosIndexRoute = AuthEventosIndexRouteImport.update({
@@ -269,6 +281,7 @@ export interface FileRoutesByFullPath {
   '/conta': typeof AuthContaRoute
   '/administracao/acessos': typeof AuthAdministracaoAcessosRoute
   '/administracao/configuracao': typeof AuthAdministracaoConfiguracaoRoute
+  '/administracao/fontes': typeof AuthAdministracaoFontesRoute
   '/administracao/historico': typeof AuthAdministracaoHistoricoRoute
   '/administracao/importar': typeof AuthAdministracaoImportarRoute
   '/administracao/membros': typeof AuthAdministracaoMembrosRoute
@@ -286,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/tarefas/lista': typeof AuthTarefasListaRoute
   '/tarefas/nova': typeof AuthTarefasNovaRoute
   '/clientes/': typeof AuthClientesIndexRoute
+  '/esportes/': typeof AuthEsportesIndexRoute
   '/eventos/': typeof AuthEventosIndexRoute
   '/fornecedores/': typeof AuthFornecedoresIndexRoute
   '/pedidos/': typeof AuthPedidosIndexRoute
@@ -311,6 +325,7 @@ export interface FileRoutesByTo {
   '/': typeof AuthIndexRoute
   '/administracao/acessos': typeof AuthAdministracaoAcessosRoute
   '/administracao/configuracao': typeof AuthAdministracaoConfiguracaoRoute
+  '/administracao/fontes': typeof AuthAdministracaoFontesRoute
   '/administracao/historico': typeof AuthAdministracaoHistoricoRoute
   '/administracao/importar': typeof AuthAdministracaoImportarRoute
   '/administracao/membros': typeof AuthAdministracaoMembrosRoute
@@ -328,6 +343,7 @@ export interface FileRoutesByTo {
   '/tarefas/lista': typeof AuthTarefasListaRoute
   '/tarefas/nova': typeof AuthTarefasNovaRoute
   '/clientes': typeof AuthClientesIndexRoute
+  '/esportes': typeof AuthEsportesIndexRoute
   '/eventos': typeof AuthEventosIndexRoute
   '/fornecedores': typeof AuthFornecedoresIndexRoute
   '/pedidos': typeof AuthPedidosIndexRoute
@@ -355,6 +371,7 @@ export interface FileRoutesById {
   '/_auth/': typeof AuthIndexRoute
   '/_auth/administracao/acessos': typeof AuthAdministracaoAcessosRoute
   '/_auth/administracao/configuracao': typeof AuthAdministracaoConfiguracaoRoute
+  '/_auth/administracao/fontes': typeof AuthAdministracaoFontesRoute
   '/_auth/administracao/historico': typeof AuthAdministracaoHistoricoRoute
   '/_auth/administracao/importar': typeof AuthAdministracaoImportarRoute
   '/_auth/administracao/membros': typeof AuthAdministracaoMembrosRoute
@@ -372,6 +389,7 @@ export interface FileRoutesById {
   '/_auth/tarefas/lista': typeof AuthTarefasListaRoute
   '/_auth/tarefas/nova': typeof AuthTarefasNovaRoute
   '/_auth/clientes/': typeof AuthClientesIndexRoute
+  '/_auth/esportes/': typeof AuthEsportesIndexRoute
   '/_auth/eventos/': typeof AuthEventosIndexRoute
   '/_auth/fornecedores/': typeof AuthFornecedoresIndexRoute
   '/_auth/pedidos/': typeof AuthPedidosIndexRoute
@@ -399,6 +417,7 @@ export interface FileRouteTypes {
     | '/conta'
     | '/administracao/acessos'
     | '/administracao/configuracao'
+    | '/administracao/fontes'
     | '/administracao/historico'
     | '/administracao/importar'
     | '/administracao/membros'
@@ -416,6 +435,7 @@ export interface FileRouteTypes {
     | '/tarefas/lista'
     | '/tarefas/nova'
     | '/clientes/'
+    | '/esportes/'
     | '/eventos/'
     | '/fornecedores/'
     | '/pedidos/'
@@ -441,6 +461,7 @@ export interface FileRouteTypes {
     | '/'
     | '/administracao/acessos'
     | '/administracao/configuracao'
+    | '/administracao/fontes'
     | '/administracao/historico'
     | '/administracao/importar'
     | '/administracao/membros'
@@ -458,6 +479,7 @@ export interface FileRouteTypes {
     | '/tarefas/lista'
     | '/tarefas/nova'
     | '/clientes'
+    | '/esportes'
     | '/eventos'
     | '/fornecedores'
     | '/pedidos'
@@ -484,6 +506,7 @@ export interface FileRouteTypes {
     | '/_auth/'
     | '/_auth/administracao/acessos'
     | '/_auth/administracao/configuracao'
+    | '/_auth/administracao/fontes'
     | '/_auth/administracao/historico'
     | '/_auth/administracao/importar'
     | '/_auth/administracao/membros'
@@ -501,6 +524,7 @@ export interface FileRouteTypes {
     | '/_auth/tarefas/lista'
     | '/_auth/tarefas/nova'
     | '/_auth/clientes/'
+    | '/_auth/esportes/'
     | '/_auth/eventos/'
     | '/_auth/fornecedores/'
     | '/_auth/pedidos/'
@@ -570,6 +594,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthAdministracaoConfiguracaoRouteImport
       parentRoute: typeof AuthRoute
     }
+    '/_auth/administracao/fontes': {
+      id: '/_auth/administracao/fontes'
+      path: '/administracao/fontes'
+      fullPath: '/administracao/fontes'
+      preLoaderRoute: typeof AuthAdministracaoFontesRouteImport
+      parentRoute: typeof AuthRoute
+    }
     '/_auth/administracao/historico': {
       id: '/_auth/administracao/historico'
       path: '/administracao/historico'
@@ -610,6 +641,13 @@ declare module '@tanstack/react-router' {
       path: '/clientes/novo'
       fullPath: '/clientes/novo'
       preLoaderRoute: typeof AuthClientesNovoRouteImport
+      parentRoute: typeof AuthRoute
+    }
+    '/_auth/esportes/': {
+      id: '/_auth/esportes/'
+      path: '/esportes'
+      fullPath: '/esportes/'
+      preLoaderRoute: typeof AuthEsportesIndexRouteImport
       parentRoute: typeof AuthRoute
     }
     '/_auth/eventos/': {
@@ -823,6 +861,7 @@ interface AuthRouteChildren {
   AuthIndexRoute: typeof AuthIndexRoute
   AuthAdministracaoAcessosRoute: typeof AuthAdministracaoAcessosRoute
   AuthAdministracaoConfiguracaoRoute: typeof AuthAdministracaoConfiguracaoRoute
+  AuthAdministracaoFontesRoute: typeof AuthAdministracaoFontesRoute
   AuthAdministracaoHistoricoRoute: typeof AuthAdministracaoHistoricoRoute
   AuthAdministracaoImportarRoute: typeof AuthAdministracaoImportarRoute
   AuthAdministracaoMembrosRoute: typeof AuthAdministracaoMembrosRoute
@@ -840,6 +879,7 @@ interface AuthRouteChildren {
   AuthTarefasListaRoute: typeof AuthTarefasListaRoute
   AuthTarefasNovaRoute: typeof AuthTarefasNovaRoute
   AuthClientesIndexRoute: typeof AuthClientesIndexRoute
+  AuthEsportesIndexRoute: typeof AuthEsportesIndexRoute
   AuthEventosIndexRoute: typeof AuthEventosIndexRoute
   AuthFornecedoresIndexRoute: typeof AuthFornecedoresIndexRoute
   AuthPedidosIndexRoute: typeof AuthPedidosIndexRoute
@@ -865,6 +905,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthIndexRoute: AuthIndexRoute,
   AuthAdministracaoAcessosRoute: AuthAdministracaoAcessosRoute,
   AuthAdministracaoConfiguracaoRoute: AuthAdministracaoConfiguracaoRoute,
+  AuthAdministracaoFontesRoute: AuthAdministracaoFontesRoute,
   AuthAdministracaoHistoricoRoute: AuthAdministracaoHistoricoRoute,
   AuthAdministracaoImportarRoute: AuthAdministracaoImportarRoute,
   AuthAdministracaoMembrosRoute: AuthAdministracaoMembrosRoute,
@@ -882,6 +923,7 @@ const AuthRouteChildren: AuthRouteChildren = {
   AuthTarefasListaRoute: AuthTarefasListaRoute,
   AuthTarefasNovaRoute: AuthTarefasNovaRoute,
   AuthClientesIndexRoute: AuthClientesIndexRoute,
+  AuthEsportesIndexRoute: AuthEsportesIndexRoute,
   AuthEventosIndexRoute: AuthEventosIndexRoute,
   AuthFornecedoresIndexRoute: AuthFornecedoresIndexRoute,
   AuthPedidosIndexRoute: AuthPedidosIndexRoute,

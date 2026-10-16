@@ -4,6 +4,7 @@ export type Modulo =
   | "vendas"
   | "fornecedores"
   | "eventos"
+  | "esportes"
   | "tarefas"
   | "relatorios"
   | "membros"

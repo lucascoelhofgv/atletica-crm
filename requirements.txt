@@ -15,3 +15,4 @@ django-filter>=24.0
 # Integração Google Sheets (fase 2)
 gspread>=6.1
 google-auth>=2.29
+openpyxl>=3.1         # planilhas .xlsx guardadas no Drive sem converter

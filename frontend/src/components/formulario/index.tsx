@@ -46,7 +46,7 @@ export function Secao({
   children,
 }: {
   titulo: string;
-  descricao?: string;
+  descricao?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (

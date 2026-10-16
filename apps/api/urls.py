@@ -11,6 +11,7 @@ from rest_framework.routers import DefaultRouter
 from apps.catalogo import api as catalogo_api
 from apps.contas import api as contas_api
 from apps.crm import api as crm_api
+from apps.esportes import api as esportes_api
 from apps.eventos import api as eventos_api
 from apps.fornecedores import api as fornecedores_api
 from apps.nucleo import api as nucleo_api
@@ -32,6 +33,7 @@ fornecedores_api.registrar(router)
 tarefas_api.registrar(router)
 eventos_api.registrar(router)
 contas_api.registrar(router)
+esportes_api.registrar(router)
 
 urlpatterns = [
     path("saude/", saude, name="api_saude"),
@@ -54,6 +56,7 @@ urlpatterns = [
          name="api_controle_produtos_previa"),
     path("integracoes/produtos-planilha/importar/", integ.ImportarControleProdutosView.as_view(),
          name="api_controle_produtos_importar"),
+    path("esportes/resumo/", esportes_api.ResumoView.as_view(), name="api_esportes_resumo"),
     path("relatorios/vendas/", relatorios_api.VendasView.as_view(), name="api_rel_vendas"),
     path("relatorios/produtos/", relatorios_api.ProdutosView.as_view(), name="api_rel_produtos"),
     path("relatorios/estoque/", relatorios_api.EstoqueView.as_view(), name="api_rel_estoque"),

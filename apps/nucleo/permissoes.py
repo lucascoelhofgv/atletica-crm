@@ -86,6 +86,11 @@ PERFIS_MODULO = {
         "escrita": [PERFIL_ADMIN, PERFIL_DIRETORIA, PERFIL_OPERACIONAL],
         "excluir": [PERFIL_ADMIN],
     },
+    "esportes": {
+        "leitura": TODOS_PERFIS,
+        "escrita": [PERFIL_ADMIN, PERFIL_DIRETORIA],
+        "excluir": [PERFIL_ADMIN],
+    },
     "tarefas": {"leitura": None, "escrita": None, "excluir": None},
     "relatorios": {"leitura": None, "escrita": [PERFIL_ADMIN], "excluir": [PERFIL_ADMIN]},
     "membros": {
